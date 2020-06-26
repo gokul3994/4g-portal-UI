@@ -310,7 +310,7 @@ var chart = am4core.create("chartdiv1", am4charts.XYChart);
 chart.exporting.menu = new am4core.ExportMenu();
 
 // Data for both series
-var data = [ {
+/*var data = [ {
   "hour": "00:00",
   "energy": 23.5,
   "power": 21.1,
@@ -484,7 +484,33 @@ var data = [ {
   "export":10,
   "import":0.1
   
-} ];
+} ];*/
+
+
+
+//var obj = JSON.parse('[{"name":"scaback_csv","columns":["time","last"],"values":[["2020-01-28t05:00:46.314546553z",0.9]]}]');
+           $.ajax( {
+                  url:'http://pv-india.eu/usaportal/production/api.php?query_type=direct&query_str=select%20mean(value)%20from%20v%20group%20by%20time(1h)',
+                  success:function(realdata) {
+                    
+					 test(realdata);
+                  }
+               });
+	   
+//var a=JSON.stringify(obj[0].values[0]);
+
+
+	function test(mytestdata){
+		var a=JSON.parse(mytestdata);
+		var b=JSON.stringify(a[0].values[0]);
+		var c=b.substring(13,18);
+		alert(c);
+		 var data=[{
+	"hour":c,
+	"energy":a[0].values[0][1]
+     }];
+	
+	
 
 /* Create axes */
 var categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
@@ -551,8 +577,10 @@ circle.fill = am4core.color("#fff");
 circle.strokeWidth = 2;
 
 chart.data = data;
+}
+});
 
-}); // end am4core.ready()
+ // end am4core.ready()
 </script>
 <!-- Chart code for systemview -->
 <script>
