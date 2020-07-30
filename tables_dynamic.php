@@ -455,7 +455,7 @@
 						  <td>Enabled</td>
                         </tr>
                         <tr>
-                          <td><a href="project_detail_new.php">7823488</a></td>
+                          <td><a href="project_detail_2.php">7823488</a></td>
                           <td>DPN Solar</td>
                           <td>NY-02-20-001</td>
 						

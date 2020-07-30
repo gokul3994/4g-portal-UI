@@ -1,7 +1,7 @@
 <?php
 //select%20mean(value)%20from%20v%20where%20time%20>%201592764200s%20AND%20time%20<%201592850600s%20group%20by%20time(1h)
 $meters = array(10439395=>array("daily_generation" => array("energy_series"=>array("query"=>"select last(value) from v where (\"d\"='10439395' AND \"f\"='KW') OR (\"d\"='10439395' AND \"f\"='KWH') ","groupby"=>"group by time(1h),f fill(null)"))));
-
+$meters2 = array(10439395=>array("daily_generation" => array("energy_series"=>array("query"=>"select mean(value) from v where \"d\"='10439395' AND \"f\"='KW' ","groupby"=>"group by time(1h)"))));
 $meters_month = array(10439395=>array("monthly_generation" => array("energy_series"=>array("query"=>"select mean(value) from v where \"d\"='10439395' AND \"f\"='KWH' ","groupby"=>"group by time(1h)"))));
 $meters_year = array(10439395=>array("yearly_generation" => array("energy_series"=>array("query"=>"select mean(value) from v where \"d\"='10439395' AND \"f\"='KWH' ","groupby"=>"group by time(1h)"))));
 
@@ -15,7 +15,7 @@ $daily_generation_energy_query = $meters[$_GET['meter']]["daily_generation"]["en
 $daily_generation_energy_groupby = $meters[$_GET['meter']]["daily_generation"]["energy_series"]["groupby"];
 $daily_generation_date = mktime(0,0,0,$month,$day,$year);
 //$daily_generation_end_date = $daily_generation_date+86400;
-
+$daily_generation_energy_query2 = $meters2[$_GET['meter']]["daily_generation"]["energy_series"]["query"];
 
 $monthly_generation_energy_query = $meters_month[$_GET['meter']]["monthly_generation"]["energy_series"]["query"];
 $monthly_generation_energy_groupby = $meters_month[$_GET['meter']]["monthly_generation"]["energy_series"]["groupby"];
@@ -520,7 +520,7 @@ function load_daily_generation(daily_generation_date){
   //$("#daily_generation_end_date").val();
   daily_generation_end_date = parseInt(daily_generation_date) + 86400;
   daily_gen_query_str = daily_generation_energy_query+"AND time > "+daily_generation_date+"s AND time < "+daily_generation_end_date+"s "+daily_generation_energy_groupby;
-   
+   daily_gen_query_str2 = daily_generation_energy_query2+"AND time > "+daily_generation_date+"s AND time < "+daily_generation_end_date+"s "+daily_generation_energy_groupby;
   //alert(daily_gen_query_str);
   
   
@@ -1009,21 +1009,129 @@ chart.data = data;
 
                     <div class="col-md-12 col-sm-12  ">
 
+                        <div class="x_content" > 
+
+                    <div class="col-md-12 col-sm-12  ">
+
                       <ul class="stats-overview">
-                        <li>
+					  
+                        <li style="width:24%;">
                           <span class="name"> Plant Status </span>
                           <span class="value text-success"> <button class="btn btn-success"></button> </span>
                         </li>
-                        <li>
+						
+                        <li style="width:24%;">
                           <span class="name"> Latest Interval Data Read </span>
                           <span class="value text-none"><b>Jan 11, 2020 03:00:00 PM </b></span>
                         </li>
-                        <li class="hidden-phone">
+						
+						
+						<li style="width:24%;">
+                          <span class="name"> Temperature </span>
+                          <span class="value text-none"><b>55 deg.</b></span>
+                        </li>
+						
+						
+                        <li class="hidden-phone" style="width:24%;">
                           <span class="name"> Communication status </span>
                           <span class="value text-success"> <button class="btn btn-success"></button> </span>
                         </li>
+						
                       </ul>
                       <br />
+					  <div class="row">
+					   <div class="col-md-3 col-sm-3  ">
+
+ <div style=" font-size:20px; font border: 2px solid;   border-radius: 5px; background-color: #FADBD8 "><h5 style="color: #000000;"><center><b>Meter Information</b></center></h5></div>
+
+
+
+<table border=1 width="100%" style="background-color: #40475A; border: 2px solid;   border-radius: 5px;color: #cccccc;">
+  <tr class="info">
+       <td  width="50%" ><i> <b>Project ID</b></i></td>
+       <td><i><b> IL-01-001 </b></i></td>
+  </tr>
+  <tr>
+       <td  width="50%" ><i> <b>Meter</b></i></td>
+       <td><i><b> 10439395 </b></i></td>
+  </tr>
+  <tr>
+    <td><i><b>SIM</b></i></td>
+    <td><i><b> 890126088224089519 </b></i></td>
+  </tr>
+   <tr>
+    <td><i><b>IMEI</b></i></td>
+    <td><i><b> 358502061560952 </b></i></td>
+  </tr>
+  <tr>
+       <td> <i><b>IP Address</b></i></td>
+       <td><i><b>  10.20.133.230 </b></i></td>
+  </tr>
+  <tr>
+       <td> <i><b>Plant Size</b></i></td>
+       <td><i><b> -</b></i></td>
+  </tr>
+  <tr>
+       <td> <i><b>Reporting Agency</b></i></td>
+       <td><i><b>  - </b></i></td>
+  </tr>
+<tr>
+       <td> <i><b>Location</b></i></td>
+       <td><i><b>  - </b></i></td>
+  </tr>
+<tr>
+       <td> <i><b>Date Of Commissioning</b></i></td>
+       <td><i><b> -</b></i></td>
+  </tr>
+</table>
+
+
+
+
+ 
+</div>
+					  
+					  <div class="col-md-3 col-sm-3" >
+<div class="x_panel" >
+<div class="x_title">
+<h2>Solar Active Power (kW)</h2>
+<div class="clearfix"></div>
+</div>
+<div class="x_content" >
+<div id="echart_gauge" style="height:187px;" ></div>
+</div>
+</div>
+</div>
+
+ <div class="col-md-3 col-sm-3  ">
+<div class="x_panel" >
+<div class="x_title">
+<h2>Solar Production (kW)</h2>
+<div class="clearfix"></div>
+</div>
+<div class="x_content">
+<div id="echart_gauge1" style="height:187px;" ></div>
+</div>
+</div>
+</div>
+
+ <div class="col-md-3 col-sm-3  ">
+<div class="x_panel">
+<div class="x_title">
+<h2>Grid Import Energy (kWh)</h2>
+<div class="clearfix"></div>
+</div>
+<div class="x_content">
+<div id="echart_gauge2" style="height:187px;" ></div>
+</div>
+</div>
+</div>
+
+
+</div>
+<br>
+<br>
+</div>
             
                         <h3 align="left">Daily Generation</h3>
                       <!--<div id="mainb" style="height:350px;"></div>-->
@@ -1060,50 +1168,13 @@ chart.data = data;
             
             </div>
         
-            <br>
-                    <br>
+                    
+          
            <br>
            <br>
-           <h3 align="left">Systemview Graph</h3>
-           
-                     <div class="col-md-4 col-sm-4  tile">
-           
-              <div class="multiselect">
-    <div class="selectBox" onclick="showCheckboxes()">
-      <select>
-        <option>Select...</option>
-      </select>
-      <div class="overSelect"></div>
-    </div>
-    <div id="checkboxes">
-      <label for="one">
-        <input type="checkbox" id="one" /><b>&nbsp;UAC</b></label>
-      <label for="two">
-        <input type="checkbox" id="two" /><b>&nbsp;PAC</b></label>
-      <label for="three">
-        <input type="checkbox" id="three" /><b>&nbsp;EAE</b></label>
-    </div>
-  </div>
-              
-              
+           <br>
+           <br>
             
-              
-        <br>
-        <br>
-        <br>
-        <br>
-        <br> 
-              
-  
-           
-            </div>
-            <p align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Select Date: <input type="text" id="datepickersys" placeholder="Choose a Date"></p>
-            <br>
-            <br>
-             <h6 align="right">Export</h6>
-           <div id="chartdiv3" style="height:300px;width:100%;" ></div>
-           <br>
-           <br>
          
             <h3 align="left">Monthly Generation</h3>
            <!--<div class="col-md-4 col-sm-4  tile">
@@ -1317,8 +1388,24 @@ chart.data = data;
   
 <script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7089c43e/cloudflare-static/rocket-loader.min.js" data-cf-settings="0e63e0d5a4e47e4b477b26a8-|49" defer=""></script></body>
 
-  
-  
+<script src="../vendors/jquery/dist/jquery.min.js" type="4088c5a822f95d2d8f5591dc-text/javascript"></script>
+
+<script src="../vendors/bootstrap/dist/js/bootstrap.bundle.min.js" type="4088c5a822f95d2d8f5591dc-text/javascript"></script>
+
+<script src="../vendors/fastclick/lib/fastclick.js" type="4088c5a822f95d2d8f5591dc-text/javascript"></script>
+
+<script src="../vendors/nprogress/nprogress.js" type="4088c5a822f95d2d8f5591dc-text/javascript"></script>
+
+<script src="../vendors/Chart.js/dist/Chart.min.js" type="4088c5a822f95d2d8f5591dc-text/javascript"></script>
+
+<script src="../vendors/jquery-sparkline/dist/jquery.sparkline.min.js" type="4088c5a822f95d2d8f5591dc-text/javascript"></script>
+
+<script src="../vendors/jquery.easy-pie-chart/dist/jquery.easypiechart.min.js" type="4088c5a822f95d2d8f5591dc-text/javascript"></script>
+
+<script src="../vendors/bootstrap-progressbar/bootstrap-progressbar.min.js" type="4088c5a822f95d2d8f5591dc-text/javascript"></script>
+
+<script src="../build/js/custom.min.js" type="4088c5a822f95d2d8f5591dc-text/javascript"></script>
+<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7089c43e/cloudflare-static/rocket-loader.min.js" data-cf-settings="4088c5a822f95d2d8f5591dc-|49" defer=""></script>
   
   
   <!-- Custom Theme Scripts -->
