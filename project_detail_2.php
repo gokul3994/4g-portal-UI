@@ -1,8 +1,13 @@
 <?php
+header("Cache-Control: no-cache, must-revalidate");
+header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
 //select%20mean(value)%20from%20v%20where%20time%20>%201592764200s%20AND%20time%20<%201592850600s%20group%20by%20time(1h)
 $meters = array(10439395=>array("daily_generation" => array("energy_series"=>array("query"=>"select last(value) from v where (\"d\"='10439395' AND \"f\"='KW') OR (\"d\"='10439395' AND \"f\"='KWH') ","groupby"=>"group by time(1h),f fill(null)"))));
-$meters2 = array(10439395=>array("daily_generation" => array("energy_series"=>array("query"=>"select mean(value) from v where \"d\"='10439395' AND \"f\"='KW' ","groupby"=>"group by time(1h)"))));
+
+$meters_day = array(10439395=>array("daily_generation" => array("energy_series"=>array("query"=>"select last(value) from v where (\"d\"='10439395' AND \"f\"='Deg_C') OR (\"d\"='10439395' AND \"f\"='KW') OR (\"d\"='10439395' AND \"f\"='KWH') ","groupby"=>"group by time(15m),f fill(null)")))); 
+
 $meters_month = array(10439395=>array("monthly_generation" => array("energy_series"=>array("query"=>"select mean(value) from v where \"d\"='10439395' AND \"f\"='KWH' ","groupby"=>"group by time(1h)"))));
+
 $meters_year = array(10439395=>array("yearly_generation" => array("energy_series"=>array("query"=>"select mean(value) from v where \"d\"='10439395' AND \"f\"='KWH' ","groupby"=>"group by time(1h)"))));
 
 $transdate = date('m-d-Y', time());
@@ -15,7 +20,11 @@ $daily_generation_energy_query = $meters[$_GET['meter']]["daily_generation"]["en
 $daily_generation_energy_groupby = $meters[$_GET['meter']]["daily_generation"]["energy_series"]["groupby"];
 $daily_generation_date = mktime(0,0,0,$month,$day,$year);
 //$daily_generation_end_date = $daily_generation_date+86400;
-$daily_generation_energy_query2 = $meters2[$_GET['meter']]["daily_generation"]["energy_series"]["query"];
+
+$day_generation_energy_query = $meters_day[$_GET['meter']]["daily_generation"]["energy_series"]["query"];
+$day_generation_energy_groupby = $meters_day[$_GET['meter']]["daily_generation"]["energy_series"]["groupby"];
+$day_generation_date = mktime(0,0,0,$month,$day,$year);
+
 
 $monthly_generation_energy_query = $meters_month[$_GET['meter']]["monthly_generation"]["energy_series"]["query"];
 $monthly_generation_energy_groupby = $meters_month[$_GET['meter']]["monthly_generation"]["energy_series"]["groupby"];
@@ -23,15 +32,12 @@ $monthly_generation_date =$month."/".$day."/".$yearFull;
 
 $yearly_generation_energy_query = $meters_year[$_GET['meter']]["yearly_generation"]["energy_series"]["query"];
 $yearly_generation_energy_groupby = $meters_year[$_GET['meter']]["yearly_generation"]["energy_series"]["groupby"];
-$yearly_generation_date = mktime(0,0,0,1,1,$year);
+$yearly_generation_date = $month."/".$day."/".$yearFull;
 
 
 $meter_id = $_GET['meter'];
 
 ?>
-
-
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -63,6 +69,7 @@ $meter_id = $_GET['meter'];
 
 <!-- Isolated Version of Bootstrap, not needed if your site already uses Bootstrap -->
 <link rel="stylesheet" href="https://formden.com/static/cdn/bootstrap-iso.css" />
+
 
 <!-- Bootstrap Date-Picker Plugin -->
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/js/bootstrap-datepicker.min.js"></script>
@@ -124,13 +131,21 @@ $meter_id = $_GET['meter'];
   height:300px;
   
 }
-tr:hover {background-color:#ffffff;}
+
 .rs{
   padding:0px;
   margin:0px
 }
-#ex3{
-  margin-left:65.5%;
+.ex3{
+  margin-left:75.5%;
+}
+.ex4{
+  margin-left:97%;
+  margin-bottom:0%
+}
+#comm:hover{
+	visibility: visible;
+  opacity: 1;
 }
 
 </style>
@@ -140,9 +155,7 @@ tr:hover {background-color:#ffffff;}
 <script src="https://www.amcharts.com/lib/4/charts.js"></script>
 <script src="https://www.amcharts.com/lib/4/themes/animated.js"></script>
 
-
-
-<!-- Chart code for month -->
+<!-- Chart code for year -->
 <script>
  $( function() {
 //dayPeakPower
@@ -155,6 +168,211 @@ function loadDayWidgets(){
 
 }
 
+
+
+
+    $( "#datepickerfromyear" ).datepicker({
+        onSelect:function(selectedDate){
+          //calendarSelDate = selectedDate.split("/");
+          //var selTimestamp = new Date(calendarSelDate[2], calendarSelDate[0]-1, calendarSelDate[1], 0, 0, 0, 0).getTime() / 1000;
+          load_yearly_generation(selectedDate);
+          //alert(seconds);
+        }
+    });
+
+var yearly_generation_date = '<?php echo $yearly_generation_date; ?>';
+load_yearly_generation(yearly_generation_date);
+
+function load_yearly_generation(yearly_generation_date){
+
+$.ajax( {
+				  url:'http://pv-india.eu/usaportal/production/meter_details.php?widget_id=yearGen&meter_id='+meter_id+'&year_calendar='+yearly_generation_date+'',
+				  
+                  success:function(realdata) {
+           //alert(realdata);         
+           yeargen(realdata);
+                  }
+               });
+   
+}
+
+
+
+  function yeargen(mytestdata){
+    //alert("in test function");
+//alert(mytestdata);
+    // Themes begin
+am4core.useTheme(am4themes_animated);
+// Themes end
+
+// Create chart instance
+var chart = am4core.create("chartdiv2", am4charts.XYChart);
+
+// Export
+chart.exporting.menu = new am4core.ExportMenu();
+chart.exporting.filePrefix = "SDSI_year";
+    //alert(mytestdata);
+    //alert(mytestdata);
+    //console.log(mytestdata);
+    series = JSON.parse(mytestdata);
+   /*[{"name":"v","columns":["time","mean"],"values":[["2020-02-08T00:00:00Z",185.27858405596],["2020-03-09T00:00:00Z",146.52633922773],["2020-04-08T00:00:00Z",142.21535513506],["2020-05-08T00:00:00Z",149.57406825825],["2020-06-07T00:00:00Z",126.74245426379],["2020-07-07T00:00:00Z",null]]}]*/
+    if(series.length == 0){
+      //
+      chart.data = [];
+      chart.validateData();
+      //return
+    }
+
+    var i;
+    var data = [];
+      for (i = 1; i < series[0].values.length; i++){
+        //alert(series[0].values[i]);
+        tmpObj = {};
+		monthname=series[0].values[i][0].substring(5,7);
+		if(monthname==01){
+			tmpObj["year"]="Jan";
+		}
+		if(monthname==02){
+			tmpObj["year"]="Feb";
+		}
+		if(monthname==03){
+			tmpObj["year"]="Mar";
+		}
+		if(monthname==04){
+			tmpObj["year"]="Apr";
+		}
+		if(monthname==05){
+			tmpObj["year"]="May";
+		}
+		if(monthname==06){
+			tmpObj["year"]="June";
+		}
+		if(monthname==07){
+			tmpObj["year"]="July";
+		}
+		if(monthname==08){
+			tmpObj["year"]="Aug";
+		}
+		if(monthname==09){
+			tmpObj["year"]="Sep";
+		}
+		if(monthname==10){
+			tmpObj["year"]="Oct";
+		}
+		if(monthname==11){
+			tmpObj["year"]="Nov";
+		}
+		if(monthname==12){
+			tmpObj["year"]="Dec";
+		}
+		
+        //tmpObj["year"]   = series[0].values[i][0].substring(5,7);
+        tmpObj["export"] = series[0].values[i][1];
+		tmpObj["import"] = series[1].values[i][1];
+        data.push(tmpObj);
+      }
+    
+   // alert(series[1].values[0][1]);
+  
+console.log(data);
+
+
+/* Create axes */
+var categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
+categoryAxis.dataFields.category = "year";
+categoryAxis.renderer.minGridDistance = 30;
+categoryAxis.title.text = " Months in a year";
+categoryAxis.title.fontWeight = "bold";
+
+/* Create value axis */
+//var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+valueAxis.dataFields.value = "energy";
+valueAxis.title.text = " kWh ";
+valueAxis.title.fontWeight = "bold";
+
+
+
+
+/* Create series */
+/*var columnSeries = chart.series.push(new am4charts.ColumnSeries());
+columnSeries.name = "Grid Import energy";
+columnSeries.dataFields.valueY = "energy";
+columnSeries.fill = am4core.color("#FB191F");
+
+columnSeries.dataFields.categoryX = "month";
+
+columnSeries.columns.template.tooltipText = "[#fff font-size: 15px]{name} in {categoryX}:\n[/][#fff font-size: 20px]{valueY}[/] [#fff font-size: 20px]{valueY2}[/]"
+columnSeries.columns.template.propertyFields.fillOpacity = "fillOpacity";
+columnSeries.columns.template.propertyFields.stroke = "stroke";
+columnSeries.columns.template.propertyFields.strokeWidth = "strokeWidth";
+columnSeries.columns.template.propertyFields.strokeDasharray = "columnDash";
+columnSeries.tooltip.label.textAlign = "middle";
+*/
+var columnSeries = chart.series.push(new am4charts.ColumnSeries());
+columnSeries.name = "Solar Production";
+columnSeries.dataFields.valueY = "import";
+columnSeries.fill = am4core.color("#60f763");
+columnSeries.dataFields.categoryX = "year";
+columnSeries.columns.template.tooltipText = "[#fff font-size: 15px]{name} at {categoryX}:\n[/][#fff font-size: 20px]{valueY}  kWh[/] [#fff font-size: 20px]{valueY2}[/]"
+columnSeries.columns.template.propertyFields.fillOpacity = "fillOpacity";
+columnSeries.columns.template.propertyFields.stroke = "stroke";
+columnSeries.columns.template.propertyFields.strokeWidth = "strokeWidth";
+columnSeries.columns.template.propertyFields.strokeDasharray = "columnDash";
+columnSeries.tooltip.label.textAlign = "middle";
+/*
+var lineSeries = chart.series.push(new am4charts.LineSeries());
+lineSeries.name = "Solar Active power";
+lineSeries.dataFields.valueY = "export";
+lineSeries.dataFields.categoryX = "year";
+lineSeries.stroke = am4core.color("#f7a90c");
+lineSeries.strokeWidth = 3;
+lineSeries.propertyFields.strokeDasharray = "lineDash";
+lineSeries.tooltip.label.textAlign = "middle";
+var bullet = lineSeries.bullets.push(new am4charts.Bullet());
+bullet.fill = am4core.color("#fdd400"); // tooltips grab fill from parent by default
+bullet.tooltipText = "[#fff font-size: 15px]{name} in {categoryX}:\n[/][#fff font-size: 20px]{valueY}[/] [#fff font-size: 20px]{valueY2}[/]"
+var circle = bullet.createChild(am4core.Circle);
+circle.radius = 2;
+circle.fill = am4core.color("#fff");
+circle.strokeWidth = 2;
+*/
+// Add legend
+chart.legend = new am4charts.Legend();
+
+// Add cursor
+chart.cursor = new am4charts.XYCursor();
+
+chart.data = data;
+
+//Updating the graph to show the new data
+
+        
+}
+//});
+
+//chart.validateData();
+
+
+
+
+
+  });
+</script>
+<!-- chart code for year ends -->
+<!-- Chart code for month -->
+<script>
+ $( function() {
+//dayPeakPower
+
+var meter_id = '<?php echo $meter_id; ?>';
+var day_calendar = '<?php echo $daily_generation_date; ?>';
+function loadDayWidgets(){
+
+
+
+}
+/*
 function loadDayPeakPower(){
 
 $.ajax( {
@@ -167,7 +385,7 @@ $.ajax( {
 
 }
 
-
+*/
     $( "#datepickerfrom" ).datepicker({
         onSelect:function(selectedDate){
           //calendarSelDate = selectedDate.split("/");
@@ -183,7 +401,7 @@ load_monthly_generation(monthly_generation_date);
 function load_monthly_generation(monthly_generation_date){
 
 $.ajax( {
-                  url:'http://pv-india.eu/usaportal/production/meter_details.php?widget_id=monthGen&meter_id='+meter_id+"month_calendar="+monthly_generation_date,
+				  url:'http://pv-india.eu/usaportal/production/meter_details.php?widget_id=monthGen&meter_id='+meter_id+'&month_calendar='+monthly_generation_date+'',
                   success:function(realdata) {
            //alert(realdata);         
            monthgen(realdata);
@@ -192,14 +410,11 @@ $.ajax( {
    
 }
 /*
-
 var monthly_generation_energy_query = '<?php echo addslashes($monthly_generation_energy_query); ?>';
 var monthly_generation_energy_groupby = '<?php echo addslashes($monthly_generation_energy_groupby); ?>';
 var monthly_generation_date = '<?php echo addslashes($monthly_generation_date); ?>';
 //var daily_generation_end_date = '<?php echo addslashes($daily_generation_end_date); ?>';
-
 load_monthly_generation(monthly_generation_date);
-
 function load_monthly_generation(monthly_generation_date){
   //alert(daily_generation_date);
   //$("#daily_generation_query").val();
@@ -212,7 +427,6 @@ function load_monthly_generation(monthly_generation_date){
   //alert(monthly_generation_end_date);
   
   
-
 //var obj = JSON.parse('[{"name":"scaback_csv","columns":["time","last"],"values":[["2020-01-28t05:00:46.314546553z",0.9]]}]');
   $.ajax( {
                   url:'http://pv-india.eu/usaportal/production/api.php?query_type=direct&query_str='+monthly_gen_query_str,
@@ -222,7 +436,6 @@ function load_monthly_generation(monthly_generation_date){
                   }
                });
 }
-
           
  */    
 //var a=JSON.stringify(obj[0].values[0]);
@@ -240,7 +453,7 @@ var chart = am4core.create("chartdiv2a", am4charts.XYChart);
 
 // Export
 chart.exporting.menu = new am4core.ExportMenu();
-
+chart.exporting.filePrefix = "SDSI_month";
     //alert(mytestdata);
     //alert(mytestdata);
     //console.log(mytestdata);
@@ -258,8 +471,46 @@ chart.exporting.menu = new am4core.ExportMenu();
       for (i = 0; i < series[0].values.length; i++){
         //alert(series[0].values[i]);
         tmpObj = {};
-        tmpObj["month"]   = series[0].values[i][0].substring(5,7);
-        tmpObj["energy"] = series[0].values[i][1];
+		monthname=series[0].values[i][0].substring(5,7);
+		if(monthname==01){
+			tmpObj["year"]="Jan";
+		}
+		if(monthname==02){
+			tmpObj["year"]="Feb";
+		}
+		if(monthname==03){
+			tmpObj["year"]="Mar";
+		}
+		if(monthname==04){
+			tmpObj["year"]="Apr";
+		}
+		if(monthname==05){
+			tmpObj["year"]="May";
+		}
+		if(monthname==06){
+			tmpObj["year"]="June";
+		}
+		if(monthname==07){
+			tmpObj["year"]="July";
+		}
+		if(monthname==08){
+			tmpObj["year"]="Aug";
+		}
+		if(monthname==09){
+			tmpObj["year"]="Sep";
+		}
+		if(monthname==10){
+			tmpObj["year"]="Oct";
+		}
+		if(monthname==11){
+			tmpObj["year"]="Nov";
+		}
+		if(monthname==12){
+			tmpObj["year"]="Dec";
+		}
+        tmpObj["month"]   = series[0].values[i][0].substring(8,10);
+        tmpObj["export"] = series[0].values[i][1];
+		tmpObj["import"] = series[1].values[i][1];
         data.push(tmpObj);
       }
     
@@ -272,17 +523,19 @@ console.log(data);
 var categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
 categoryAxis.dataFields.category = "month";
 categoryAxis.renderer.minGridDistance = 30;
-
+categoryAxis.title.text="Days in a month";
+categoryAxis.title.fontWeight = "bold";
 /* Create value axis */
 //var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
 var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
 valueAxis.dataFields.value = "energy";
-
+valueAxis.title.text = " kWh ";
+valueAxis.title.fontWeight = "bold";
 
 
 
 /* Create series */
-var columnSeries = chart.series.push(new am4charts.ColumnSeries());
+/*var columnSeries = chart.series.push(new am4charts.ColumnSeries());
 columnSeries.name = "Grid Import energy";
 columnSeries.dataFields.valueY = "energy";
 columnSeries.fill = am4core.color("#FB191F");
@@ -295,34 +548,28 @@ columnSeries.columns.template.propertyFields.stroke = "stroke";
 columnSeries.columns.template.propertyFields.strokeWidth = "strokeWidth";
 columnSeries.columns.template.propertyFields.strokeDasharray = "columnDash";
 columnSeries.tooltip.label.textAlign = "middle";
-
-/*var columnSeries = chart.series.push(new am4charts.ColumnSeries());
-columnSeries.name = "Solar energy";
+*/
+var columnSeries = chart.series.push(new am4charts.ColumnSeries());
+columnSeries.name = "Solar Production";
+columnSeries.label = "year";
 columnSeries.dataFields.valueY = "import";
 columnSeries.fill = am4core.color("#60f763");
-
-columnSeries.dataFields.categoryX = "hour";
-
-columnSeries.columns.template.tooltipText = "[#fff font-size: 15px]{name} in {categoryX}:\n[/][#fff font-size: 20px]{valueY}[/] [#fff font-size: 20px]{valueY2}[/]"
+columnSeries.dataFields.categoryX = "month";
+columnSeries.columns.template.tooltipText = "[#fff font-size: 15px]{name} at {year} {categoryX}:\n[/][#fff font-size: 20px]{valueY} kWh[/] [#fff font-size: 20px]{valueY2}[/]"
 columnSeries.columns.template.propertyFields.fillOpacity = "fillOpacity";
 columnSeries.columns.template.propertyFields.stroke = "stroke";
 columnSeries.columns.template.propertyFields.strokeWidth = "strokeWidth";
 columnSeries.columns.template.propertyFields.strokeDasharray = "columnDash";
 columnSeries.tooltip.label.textAlign = "middle";
-
-
-
-
+/*
 var lineSeries = chart.series.push(new am4charts.LineSeries());
 lineSeries.name = "Solar Active power";
 lineSeries.dataFields.valueY = "export";
-lineSeries.dataFields.categoryX = "hour";
-
+lineSeries.dataFields.categoryX = "month";
 lineSeries.stroke = am4core.color("#f7a90c");
 lineSeries.strokeWidth = 3;
 lineSeries.propertyFields.strokeDasharray = "lineDash";
 lineSeries.tooltip.label.textAlign = "middle";
-
 var bullet = lineSeries.bullets.push(new am4charts.Bullet());
 bullet.fill = am4core.color("#fdd400"); // tooltips grab fill from parent by default
 bullet.tooltipText = "[#fff font-size: 15px]{name} in {categoryX}:\n[/][#fff font-size: 20px]{valueY}[/] [#fff font-size: 20px]{valueY2}[/]"
@@ -331,6 +578,12 @@ circle.radius = 2;
 circle.fill = am4core.color("#fff");
 circle.strokeWidth = 2;
 */
+// Add legend
+chart.legend = new am4charts.Legend();
+
+// Add cursor
+chart.cursor = new am4charts.XYCursor();
+
 chart.data = data;
 
 //Updating the graph to show the new data
@@ -349,101 +602,8 @@ chart.data = data;
 </script>
 
 <!-- Chart code for systemview -->
-<script>
-am4core.ready(function() {
-
-// Themes begin
-am4core.useTheme(am4themes_animated);
-// Themes end
-
-// Create chart instance
-var chart = am4core.create("chartdiv3", am4charts.XYChart);
-
-// Export
-chart.exporting.menu = new am4core.ExportMenu();
-
-// Data for both series
-var data = [ {
-  "Day": "11",
-  "energy": 23.5,
-  "power": 21.1
-}, {
-  "Day": "12",
-  "energy": 26.2,
-  "power": 30.5
-}, {
-  "Day": "13",
-  "energy": 30.1,
-  "power": 34.9
-}, {
-  "Day": "14",
-  "energy": 29.5,
-  "power": 31.1
-}, {
-  "Day": "15",
-  "energy": 30.6,
-  "power": 28.2
-  
-}, {
-  "Day": "16",
-  "energy": 34.1,
-  "power": 32.9
-  
-  
-} ];
-
-/* Create axes */
-var categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
-categoryAxis.dataFields.category = "Day";
-categoryAxis.renderer.minGridDistance = 30;
-
-/* Create value axis */
-//var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
-var valueAxis1 = chart.yAxes.push(new am4charts.ValueAxis());
-valueAxis1.dataFields.value = "energy";
-var valueAxis2 = chart.yAxes.push(new am4charts.ValueAxis());
-valueAxis2.dataFields.value2 = "power";
-
-var lineSeries = chart.series.push(new am4charts.LineSeries());
-lineSeries.name = "energy";
-lineSeries.dataFields.valueY = "energy";
-lineSeries.dataFields.categoryX = "Day";
-
-lineSeries.stroke = am4core.color("#3CDAF3");
-lineSeries.strokeWidth = 3;
-lineSeries.propertyFields.strokeDasharray = "lineDash";
-lineSeries.tooltip.label.textAlign = "middle";
-
-var bullet = lineSeries.bullets.push(new am4charts.Bullet());
-bullet.fill = am4core.color("#3CDAF3"); // tooltips grab fill from parent by default
-bullet.tooltipText = "[#fff font-size: 15px]{name} in {categoryX}:\n[/][#fff font-size: 20px]{valueY}[/] [#fff font-size: 20px]{valueY2}[/]"
-var circle = bullet.createChild(am4core.Circle);
-circle.radius = 4;
-circle.fill = am4core.color("#fff");
-circle.strokeWidth = 3;
 
 
-var lineSeries = chart.series.push(new am4charts.LineSeries());
-lineSeries.name = "power";
-lineSeries.dataFields.valueY = "power";
-lineSeries.dataFields.categoryX = "Day";
-
-lineSeries.stroke = am4core.color("#fdd400");
-lineSeries.strokeWidth = 3;
-lineSeries.propertyFields.strokeDasharray = "lineDash";
-lineSeries.tooltip.label.textAlign = "middle";
-
-var bullet = lineSeries.bullets.push(new am4charts.Bullet());
-bullet.fill = am4core.color("#fdd400"); // tooltips grab fill from parent by default
-bullet.tooltipText = "[#fff font-size: 15px]{name} in {categoryX}:\n[/][#fff font-size: 20px]{valueY}[/] [#fff font-size: 20px]{valueY2}[/]"
-var circle = bullet.createChild(am4core.Circle);
-circle.radius = 4;
-circle.fill = am4core.color("#fff");
-circle.strokeWidth = 3;
-
-chart.data = data;
-
-}); // end am4core.ready()
 </script>
  <script>
 /*function selFunction(){
@@ -479,6 +639,7 @@ function showCheckboxes() {
   }
 }
 </script>
+
 <script>
   $( function() {
 
@@ -508,7 +669,7 @@ var daily_generation_energy_query = '<?php echo addslashes($daily_generation_ene
 var daily_generation_energy_groupby = '<?php echo addslashes($daily_generation_energy_groupby); ?>';
 var daily_generation_date = '<?php echo addslashes($daily_generation_date); ?>';
 //var daily_generation_end_date = '<?php echo addslashes($daily_generation_end_date); ?>';
-var daily_generation_energy_query2 = '<?php echo addslashes($daily_generation_energy_query2); ?>';
+
 
 load_daily_generation(daily_generation_date);
 
@@ -520,7 +681,7 @@ function load_daily_generation(daily_generation_date){
   //$("#daily_generation_end_date").val();
   daily_generation_end_date = parseInt(daily_generation_date) + 86400;
   daily_gen_query_str = daily_generation_energy_query+"AND time > "+daily_generation_date+"s AND time < "+daily_generation_end_date+"s "+daily_generation_energy_groupby;
-   daily_gen_query_str2 = daily_generation_energy_query2+"AND time > "+daily_generation_date+"s AND time < "+daily_generation_end_date+"s "+daily_generation_energy_groupby;
+   
   //alert(daily_gen_query_str);
   
   
@@ -554,7 +715,7 @@ var chart = am4core.create("chartdiv1", am4charts.XYChart);
 
 // Export
 chart.exporting.menu = new am4core.ExportMenu();
-chart.exporting.filePrefix = "SDSI";
+chart.exporting.filePrefix = "SDSI_daily";
     
 
     //alert(mytestdata);
@@ -607,11 +768,15 @@ console.log(data);
 var categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
 categoryAxis.dataFields.category = "hour";
 categoryAxis.renderer.minGridDistance = 30;
+categoryAxis.title.text = " Time is hours ";
+categoryAxis.title.fontWeight = "bold";
 
 /* Create value axis */
 //var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
 var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
 valueAxis.dataFields.value = "energy";
+valueAxis.title.text = " kWh ";
+valueAxis.title.fontWeight = "bold";
 
 
 
@@ -622,9 +787,7 @@ var columnSeries = chart.series.push(new am4charts.ColumnSeries());
 columnSeries.name = "Grid Import energy";
 columnSeries.dataFields.valueY = "energy";
 columnSeries.fill = am4core.color("#FB191F");
-
 columnSeries.dataFields.categoryX = "hour";
-
 columnSeries.columns.template.tooltipText = "[#fff font-size: 15px]{name} in {categoryX}:\n[/][#fff font-size: 20px]{valueY}[/] [#fff font-size: 20px]{valueY2}[/]"
 columnSeries.columns.template.propertyFields.fillOpacity = "fillOpacity";
 columnSeries.columns.template.propertyFields.stroke = "stroke";
@@ -633,13 +796,13 @@ columnSeries.columns.template.propertyFields.strokeDasharray = "columnDash";
 columnSeries.tooltip.label.textAlign = "middle";
 */
 var columnSeries = chart.series.push(new am4charts.ColumnSeries());
-columnSeries.name = "Solar Energy";
+columnSeries.name = "Solar Production";
 columnSeries.dataFields.valueY = "import";
 columnSeries.fill = am4core.color("#60f763");
 
 columnSeries.dataFields.categoryX = "hour";
 
-columnSeries.columns.template.tooltipText = "[#fff font-size: 15px]{name} in {categoryX}:\n[/][#fff font-size: 20px]{valueY}[/] [#fff font-size: 20px]{valueY2}[/]"
+columnSeries.columns.template.tooltipText = "[#fff font-size: 15px]{name} at {categoryX}:\n[/][#fff font-size: 20px]{valueY} kWh[/] [#fff font-size: 20px]{valueY2}[/]"
 columnSeries.columns.template.propertyFields.fillOpacity = "fillOpacity";
 columnSeries.columns.template.propertyFields.stroke = "stroke";
 columnSeries.columns.template.propertyFields.strokeWidth = "strokeWidth";
@@ -649,6 +812,7 @@ columnSeries.tooltip.label.textAlign = "middle";
 
 
 
+/*
 var lineSeries = chart.series.push(new am4charts.LineSeries());
 lineSeries.name = "Solar Active Power";
 lineSeries.dataFields.valueY = "export";
@@ -666,7 +830,7 @@ var circle = bullet.createChild(am4core.Circle);
 circle.radius = 2;
 circle.fill = am4core.color("#fff");
 circle.strokeWidth = 2;
-
+*/
 // Add legend
 chart.legend = new am4charts.Legend();
 
@@ -703,7 +867,353 @@ chart.data = data;
 
 
   </script>
-</script>
+  <script>
+   $.ajax( {
+                  url:'http://pv-india.eu/usaportal/production/meter_details.php?widget_id=topwidget',
+                  success:function(topdata) {
+           //alert(realdata);         
+           widgettop(topdata);
+		  
+		   
+                  }
+               }); 
+			   
+	function widgettop(data){
+		
+		
+		 var seriestop = JSON.parse(data);
+		lastcomm=seriestop[3].values[0][1];
+		document.getElementById("lastcomm").innerHTML=lastcomm;
+		temp=(seriestop[1].values[0][1]*9/5)+32;
+		tempr=parseFloat(temp).toFixed(2);
+		document.getElementById("temp").innerHTML=tempr;
+		comm=seriestop[0].values[0][1];
+		if(comm==1){
+			var a=document.createElement("button");
+			a.setAttribute('class','btn btn-success');
+			document.body.appendChild(a);
+		document.getElementById("comm").appendChild(a);
+		}else{
+			var b=document.createElement("button");
+			b.setAttribute('class','btn btn-danger');
+			document.body.appendChild(b);
+		document.getElementById("comm").appendChild(b);
+			
+		}
+		
+		power=seriestop[2].values[0][1];
+		if (power > 0 || comm==1){
+			var c=document.createElement("button");
+			c.setAttribute('class','btn btn-success');
+			document.body.appendChild(c);
+		document.getElementById("status").appendChild(c);
+		}else if(power <=0 || comm==1 ){
+			var d=document.createElement("button");
+			d.setAttribute('class','btn btn-warning');
+			document.body.appendChild(d);
+		document.getElementById("status").appendChild(d);
+			}else{
+				var e=document.createElement("button");
+			e.setAttribute('class','btn btn-danger');
+			document.body.appendChild(e);
+		document.getElementById("status").appendChild(e);
+			}
+			
+	}
+  $.ajax( {
+                  url:'http://pv-india.eu/usaportal/production/meter_details.php?widget_id=daywidget',
+                  success:function(realdata) {
+           //alert(realdata);         
+           widgetday(realdata);
+		  
+		   
+                  }
+               }); 
+			   
+	function widgetday(mydata){
+		
+		
+		 var series = JSON.parse(mydata);
+		daypro=series[1].values[0][1];
+		document.getElementById("daySolarProduction").innerHTML=daypro;
+		document.getElementById("dayGridImportEnergy").innerHTML=0;
+	}
+
+
+$.ajax( {
+                  url:'http://pv-india.eu/usaportal/production/meter_details.php?widget_id=monthwidget',
+                  success:function(datareal) {
+           //alert(realdata);         
+           widgetmonth(datareal);
+		  
+		   
+                  }
+               }); 
+			   
+	function widgetmonth(mydatareal){
+		
+		
+		 var seriesmonth = JSON.parse(mydatareal);
+		
+		monthpro=seriesmonth[1].values[0][1];
+		document.getElementById("monthSolarProduction").innerHTML=monthpro;
+		
+	}
+
+$.ajax( {
+                  url:'http://pv-india.eu/usaportal/production/meter_details.php?widget_id=lifetimewidget',
+                  success:function(data) {
+           //alert(realdata);         
+           widgetlifetime(data);
+		  
+		   
+                  }
+               }); 
+			   
+	function widgetlifetime(datareal){
+		
+		
+		 var serieslifetime = JSON.parse(datareal);
+		
+		
+		lifepro=serieslifetime[1].values[0][1];
+		document.getElementById("lifetimeenergy").innerHTML=lifepro;
+		
+	}
+</script>	
+ <script type="text/javascript">
+		
+		$.ajax( {
+                  url:'http://pv-india.eu/usaportal/production/meter_details.php?widget_id=yeartablewidget',
+                  success:function(datas) {
+           //alert(realdata);         
+           widgetyeartable(datas);
+		  
+		   
+                  }
+               }); 
+			   
+	function widgetyeartable(datareal){
+		
+		
+		 var seriesyeartable = JSON.parse(datareal);
+		 
+		 var i;
+    
+      for (i = 0; i < 12; i++){
+		  yeartable1=seriesyeartable[0].values[0][0].substring(0,4);
+		  document.getElementById("yeartablea0").innerHTML=yeartable1;
+         
+         production1=seriesyeartable[0].values[0][1];
+		document.getElementById("yeartablec0").innerHTML=production1;
+		 
+		
+		yeartable2=seriesyeartable[3].values[0][0].substring(0,4);
+		  document.getElementById("yeartablea1").innerHTML=yeartable2;
+         peakpower2=seriesyeartable[5].values[0][1];
+		document.getElementById("yeartableb1").innerHTML=peakpower2;
+         production2=seriesyeartable[3].values[0][1];
+		document.getElementById("yeartablec1").innerHTML=production2;
+		 
+		
+		yeartable3=seriesyeartable[6].values[0][0].substring(0,4);
+		  document.getElementById("yeartablea2").innerHTML=yeartable3;
+         
+         production3=seriesyeartable[6].values[0][1];
+		document.getElementById("yeartablec2").innerHTML=production3;
+		 
+		
+		yeartable4=seriesyeartable[9].values[0][0].substring(0,4);
+		  document.getElementById("yeartablea3").innerHTML=yeartable4;
+         
+         production4=seriesyeartable[9].values[0][1];
+		document.getElementById("yeartablec3").innerHTML=production4;
+		 
+	   
+	   yeartable5=seriesyeartable[12].values[0][0].substring(0,4);
+		  document.getElementById("yeartablea4").innerHTML=yeartable5;
+         
+         production5=seriesyeartable[12].values[0][1];
+		document.getElementById("yeartablec4").innerHTML=production5;
+		 
+	  }
+		
+	}	
+
+    
+		</script>
+		<script type="text/javascript">
+		
+		$.ajax( {
+                  url:'http://pv-india.eu/usaportal/production/meter_details.php?widget_id=monthtablewidget',
+                  success:function(data) {
+           //alert(realdata);         
+           widgetmonthtable(data);
+		  
+		   
+                  }
+               }); 
+			   
+	function widgetmonthtable(datareal){
+		
+		
+		 var seriesmonthtable = JSON.parse(datareal);
+		 
+		 var i;
+    
+      for (i = 0; i < 12; i++){
+		  /*monthtable1=seriesmonthtable[0].values[0][0].substring(0,7);
+		  document.getElementById("monthtablea0").innerHTML=monthtable1;
+         
+         production1=seriesmonthtable[0].values[0][1];
+		document.getElementById("monthtablec0").innerHTML=production1;*/
+		 
+		
+		monthtable2=seriesmonthtable[0].values[1][0].substring(0,7);
+		  document.getElementById("monthtablea1").innerHTML=monthtable2;
+         
+         production2=seriesmonthtable[0].values[1][1];
+		document.getElementById("monthtablec1").innerHTML=production2;
+		
+		monthtable3=seriesmonthtable[0].values[2][0].substring(0,7);
+		  document.getElementById("monthtablea2").innerHTML=monthtable3;
+         
+         production3=seriesmonthtable[0].values[2][1];
+		document.getElementById("monthtablec2").innerHTML=production3;
+		 
+		
+		monthtable4=seriesmonthtable[0].values[3][0].substring(0,7);
+		  document.getElementById("monthtablea3").innerHTML=monthtable4;
+         
+         production4=seriesmonthtable[0].values[3][1];
+		document.getElementById("monthtablec3").innerHTML=production4;
+		 
+	   
+	   monthtable5=seriesmonthtable[0].values[4][0].substring(0,7);
+		  document.getElementById("monthtablea4").innerHTML=monthtable5;
+         
+         production5=seriesmonthtable[0].values[4][1];
+		document.getElementById("monthtablec4").innerHTML=production5;
+		 
+		
+		monthtable6=seriesmonthtable[0].values[5][0].substring(0,7);
+		  document.getElementById("monthtablea5").innerHTML=monthtable6;
+         
+         production6=seriesmonthtable[0].values[5][1];
+		document.getElementById("monthtablec5").innerHTML=production6;
+		
+		
+		monthtable7=seriesmonthtable[0].values[6][0].substring(0,7);
+		  document.getElementById("monthtablea6").innerHTML=monthtable7;
+         
+         production7=seriesmonthtable[0].values[6][1];
+		document.getElementById("monthtablec6").innerHTML=production7;
+		 
+		
+		monthtable8=seriesmonthtable[0].values[7][0].substring(0,7);
+		  document.getElementById("monthtablea7").innerHTML=monthtable8;
+         
+         production8=seriesmonthtable[0].values[7][1];
+		document.getElementById("monthtablec7").innerHTML=production8;
+		 
+		
+		monthtable9=seriesmonthtable[0].values[8][0].substring(0,7);
+		  document.getElementById("monthtablea8").innerHTML=monthtable9;
+         
+         production9=seriesmonthtable[0].values[8][1];
+		document.getElementById("monthtablec8").innerHTML=production9;
+		 
+	   
+	   monthtable10=seriesmonthtable[0].values[9][0].substring(0,7);
+		  document.getElementById("monthtablea9").innerHTML=monthtable10;
+         
+         production10=seriesmonthtable[0].values[9][1];
+		document.getElementById("monthtablec9").innerHTML=production10;
+		 
+		
+		 monthtable11=seriesmonthtable[0].values[10][0].substring(0,7);
+		  document.getElementById("monthtablea10").innerHTML=monthtable11;
+         
+         production11=seriesmonthtable[0].values[10][1];
+		document.getElementById("monthtablec10").innerHTML=production11;
+		 
+		
+		 monthtable12=seriesmonthtable[0].values[11][0].substring(0,7);
+		  document.getElementById("monthtablea11").innerHTML=monthtable12;
+         
+         production12=seriesmonthtable[0].values[11][1];
+		document.getElementById("monthtablec11").innerHTML=production12;
+		 
+	  }
+		
+	}	
+
+    
+		</script>
+	<script>
+function export1(tableID, filename = ''){
+    var downloadLink;
+    var dataType = 'application/vnd.ms-excel';
+    var tableSelect = document.getElementById(tableID);
+    var tableHTML = tableSelect.outerHTML.replace(/ /g, '%20');
+    
+    // Specify file name
+    filename = filename?filename+'.xls':'excel_data.xls';
+    
+    // Create download link element
+    downloadLink = document.createElement("a");
+    
+    document.body.appendChild(downloadLink);
+    
+    if(navigator.msSaveOrOpenBlob){
+        var blob = new Blob(['\ufeff', tableHTML], {
+            type: dataType
+        });
+        navigator.msSaveOrOpenBlob( blob, filename);
+    }else{
+        // Create a link to the file
+        downloadLink.href = 'data:' + dataType + ', ' + tableHTML;
+    
+        // Setting the file name
+        downloadLink.download = filename;
+        
+        //triggering the function
+        downloadLink.click();
+    }
+}
+function export2(tableID, filename = ''){
+    var downloadLink;
+    var dataType = 'application/vnd.ms-excel';
+    var tableSelect = document.getElementById(tableID);
+    var tableHTML = tableSelect.outerHTML.replace(/ /g, '%20');
+    
+    // Specify file name
+    filename = filename?filename+'.xls':'excel_data.xls';
+    
+    // Create download link element
+    downloadLink = document.createElement("a");
+    
+    document.body.appendChild(downloadLink);
+    
+    if(navigator.msSaveOrOpenBlob){
+        var blob = new Blob(['\ufeff', tableHTML], {
+            type: dataType
+        });
+        navigator.msSaveOrOpenBlob( blob, filename);
+    }else{
+        // Create a link to the file
+        downloadLink.href = 'data:' + dataType + ', ' + tableHTML;
+    
+        // Setting the file name
+        downloadLink.download = filename;
+        
+        //triggering the function
+        downloadLink.click();
+    }
+}
+
+</script>	
+
   <script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
 <script src="//code.jquery.com/jquery-1.9.1.js"></script>
   <script src="//cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
@@ -715,12 +1225,12 @@ chart.data = data;
     
 
 
-    <div class="container body">
+    <div class="container body" height="100%">
       <div class="main_container">
         <div class="col-md-3 left_col">
           <div class="left_col scroll-view">
             <div class="navbar nav_title" style="border: 0;">
-              <a href="index.html" class="site_title"><span>SDSI</span></a>
+              <a href="" class="site_title"><span>SDSI</span></a>
             </div>
 
             <div class="clearfix"></div>
@@ -743,11 +1253,11 @@ chart.data = data;
             <!-- sidebar menu -->
             <div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
               <div class="menu_section">
-                <h3>General</h3>
+                <!--<h3>General</h3>
                 <ul class="nav side-menu">
-                  <li><a href="tables_dynamic.php" ><i class="fa fa-home"></i> Home <span class="fa fa-chevron-down"></span></a>
+                  <li><a href="" ><i class="fa fa-home"></i> Home <span class="fa fa-chevron-down"></span></a>
                     
-                  </li>
+                  </li>-->
                   <!--<li><a><i class="fa fa-edit"></i> Forms <span class="fa fa-chevron-down"></span></a>
                     <ul class="nav child_menu">
                       <li><a href="form.html">General Form</a></li>
@@ -771,13 +1281,13 @@ chart.data = data;
                       <li><a href="calendar.html">Calendar</a></li>
                     </ul>
                   </li>-->
-                  <li><a><i class="fa fa-table"></i> Meters <span class="fa fa-chevron-down"></span></a>
+                  <!--<li><a><i class="fa fa-table"></i> Meters <span class="fa fa-chevron-down"></span></a>
                     <ul class="nav child_menu">
-                      <li><a href="tables_dynamic.php">NC</a></li>
-                      <li><a href="tables_dynamic.php">Not_Installed</a></li>
-                      <li><a href="tables_dynamic.php">SC</a></li>
+                      <li><a href="">NC</a></li>
+                      <li><a href="">Not_Installed</a></li>
+                      <li><a href="">SC</a></li>
                     </ul>
-                  </li>
+                  </li>-->
                   <!--<li><a><i class="fa fa-bar-chart-o"></i> Data Presentation <span class="fa fa-chevron-down"></span></a>
                     <ul class="nav child_menu">
                       <li><a href="chartjs.html">Chart JS</a></li>
@@ -1015,26 +1525,26 @@ chart.data = data;
 
                       <ul class="stats-overview">
 					  
-                        <li style="width:24%;">
-                          <span class="name"> Plant Status </span>
-                          <span class="value text-success"> <button class="btn btn-success"></button> </span>
+                       <li style="width:24%;">
+                          <span class="name"> Plant Production Status </span>
+                          <span class="value text-success" id="status">  </span>
                         </li>
 						
                         <li style="width:24%;">
                           <span class="name"> Latest Interval Data Read </span>
-                          <span class="value text-none"><b>Jan 11, 2020 03:00:00 PM </b></span>
+                          <span class="value text-none" id="lastcomm"><b></b></span>
                         </li>
 						
 						
 						<li style="width:24%;">
-                          <span class="name"> Temperature </span>
-                          <span class="value text-none"><b>55 deg.</b></span>
+                          <span class="name"> Temperature (F) </span>
+                          <span class="value text-none" id="temp"><b></b></span>
                         </li>
 						
 						
                         <li class="hidden-phone" style="width:24%;">
                           <span class="name"> Communication status </span>
-                          <span class="value text-success"> <button class="btn btn-success"></button> </span>
+                          <span class="value text-success" id="comm">  </span>
                         </li>
 						
                       </ul>
@@ -1057,11 +1567,15 @@ chart.data = data;
   </tr>
   <tr>
     <td><i><b>SIM</b></i></td>
-    <td><i><b> 890126088224089519 </b></i></td>
+    <td><i><b> 8901264089519 </b></i></td>
+  </tr>
+  <tr>
+    <td><i><b>IMEI</b></i></td>
+    <td><i><b> 9808080124089519 </b></i></td>
   </tr>
    <tr>
-    <td><i><b>IMEI</b></i></td>
-    <td><i><b> 358502061560952 </b></i></td>
+    <td><i><b>Address</b></i></td>
+    <td><i><b> 930 Church Street. Evanston. IL-60201 </b></i></td>
   </tr>
   <tr>
        <td> <i><b>IP Address</b></i></td>
@@ -1075,12 +1589,9 @@ chart.data = data;
        <td> <i><b>Reporting Agency</b></i></td>
        <td><i><b>  - </b></i></td>
   </tr>
+
 <tr>
-       <td> <i><b>Location</b></i></td>
-       <td><i><b>  - </b></i></td>
-  </tr>
-<tr>
-       <td> <i><b>Date Of Commissioning</b></i></td>
+       <td> <i><b>Start Date</b></i></td>
        <td><i><b> -</b></i></td>
   </tr>
 </table>
@@ -1094,7 +1605,7 @@ chart.data = data;
 					  <div class="col-md-3 col-sm-3" >
 <div class="x_panel" >
 <div class="x_title">
-<h2>Solar Active Power (kW)</h2>
+<h2>Today Generation(kWh)</h2>
 <div class="clearfix"></div>
 </div>
 <div class="x_content" >
@@ -1106,7 +1617,7 @@ chart.data = data;
  <div class="col-md-3 col-sm-3  ">
 <div class="x_panel" >
 <div class="x_title">
-<h2>Solar Production (kW)</h2>
+<h2>Monthly Generation(kWh)</h2>
 <div class="clearfix"></div>
 </div>
 <div class="x_content">
@@ -1118,7 +1629,7 @@ chart.data = data;
  <div class="col-md-3 col-sm-3  ">
 <div class="x_panel">
 <div class="x_title">
-<h2>Grid Import Energy (kWh)</h2>
+<h2>Lifetime Generation(kWh)</h2>
 <div class="clearfix"></div>
 </div>
 <div class="x_content">
@@ -1131,12 +1642,17 @@ chart.data = data;
 </div>
 <br>
 <br>
+
+
 </div>
-            
-                        <h3 align="left">Daily Generation</h3>
+<div id="gauge"></div>
+
+
+
+             <h3 align="left">Hourly Generation</h3>
                       <!--<div id="mainb" style="height:350px;"></div>-->
             
-          <p align="center">Select Date: <input type="text" id="daydatepicker" placeholder="Choose a Date"></p>
+          <p align="center">Select Date: <input type="text" id="daydatepicker" placeholder="Choose a Date" readonly></p>
           
             
             <br>
@@ -1148,19 +1664,13 @@ chart.data = data;
             <div class="col-md-12 col-sm-12" >
 
                       <ul class="stats-overview">
-                        <li style="width:24%">
-                          <span class="name"> Peak Power (kW)</span>
-                          <span class="value text-warning"><p id="dayPeakPower"></p></span>
-                        </li>
-                        <li style="width:24%">
-                          <span class="name"> Solar Active Power (kW)</span>
-                          <span class="value text-warning"><p id="dayActPower"></p> </span>
-                        </li>
-                        <li style="width:24%">
-                          <span class="name">Grid Import Energy (kWh)</span>
+                       
+                        
+                        <li style="width:49%">
+                          <span class="name">Grid Consumption (kWh)</span>
                           <span class="value text-danger"><p id="dayGridImportEnergy"></p></span>
                         </li>
-             <li style="width:24%">
+             <li style="width:49%">
                           <span class="name">Solar Production (kWh)</span>
                           <span class="value text-success"><p id="daySolarProduction"></p></span>
                         </li>
@@ -1168,14 +1678,14 @@ chart.data = data;
             
             </div>
         
-                    
-          
+            <br>
+                    <br>
            <br>
            <br>
-           <br>
-           <br>
-            
          
+          
+         
+           
             <h3 align="left">Monthly Generation</h3>
            <!--<div class="col-md-4 col-sm-4  tile">
            
@@ -1203,31 +1713,34 @@ chart.data = data;
             <br>
             <br>--->
             
-            <p align="center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Select Date: <input type="text" id="datepickerfrom" placeholder="Choose a Date"></p>
+            <p align="center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Select Month: <input type="text" id="datepickerfrom" placeholder="Choose a Date" readonly></p>
             
            <br>
            <br>
-            <h6 id="ex3">Export</h6>
-          
+            <div class="row">
+			<h6 class="ex3">Export</h6>
+			<input type="button" name="Export" OnClick="export1('monthtable','monthdata')" style="text-align:right" class="ex4" value="..."></input>
+          </div>
              <div class="row">     
-          <div id="chartdiv2a" style="height:300px;width:70%;"></div>
+          <div id="chartdiv2a" style="height:300px;width:80%;"></div>
           
-          <div class="table table-bordered" id="monthtable">
+          <div class="table table-bordered" id="monthtable" style="width:20%;">
           <table>
           
-          <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;"><u>Month-Wise</td><td style="padding:2.5px; margin:0px;"><u>Peak (kW)</td><td style="padding:2.5px; margin:0px;"><u>Solar prd.(kWh)</td><td style="padding:2.5px; margin:0px;"><u>Grid import(kWh)</td></u></tr>
-          <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;">Jan 2020 </td><td style="padding:2.5px; margin:0px;">200</td><td style="padding:2.5px; margin:0px;">5000</td><td style="padding:2.5px; margin:0px;">100</td></tr>
-          <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;">Feb 2020 </td><td style="padding:2.5px; margin:0px;">300</td><td style="padding:2.5px; margin:0px;">6000</td><td style="padding:2.5px; margin:0px;">200</td></tr>
-          <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;">Mar 2020 </td><td style="padding:2.5px; margin:0px;">400</td><td style="padding:2.5px; margin:0px;">5430</td><td style="padding:2.5px; margin:0px;">330</td></tr>
-          <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;">Apr 2020 </td><td style="padding:2.5px; margin:0px;">590</td><td style="padding:2.5px; margin:0px;">3320</td><td style="padding:2.5px; margin:0px;">320</td></tr>
-          <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;">May 2020 </td><td style="padding:2.5px; margin:0px;">300</td><td style="padding:2.5px; margin:0px;">4420</td><td style="padding:2.5px; margin:0px;">550</td></tr>
-          <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;">Jun 2020 </td><td style="padding:2.5px; margin:0px;">700</td><td style="padding:2.5px; margin:0px;">1202</td><td style="padding:2.5px; margin:0px;">440</td></tr>
-          <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;">Aug 2020 </td><td style="padding:2.5px; margin:0px;">300</td><td style="padding:2.5px; margin:0px;">4402</td><td style="padding:2.5px; margin:0px;">340</td></tr>
-          <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;">Sep 2020 </td><td style="padding:2.5px; margin:0px;">100</td><td style="padding:2.5px; margin:0px;">1200</td><td style="padding:2.5px; margin:0px;">200</td></tr>
-          <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;">Oct 2020 </td><td style="padding:2.5px; margin:0px;">500</td><td style="padding:2.5px; margin:0px;">3032</td><td style="padding:2.5px; margin:0px;">600</td></tr>
-          <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;">Nov 2020 </td><td style="padding:2.5px; margin:0px;">300</td><td style="padding:2.5px; margin:0px;">4042</td><td style="padding:2.5px; margin:0px;">220</td></tr>
-          <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;">Dec 2020 </td><td style="padding:2.5px; margin:0px;">100</td><td style="padding:2.5px; margin:0px;">120</td><td style="padding:2.5px; margin:0px;">120</td></tr>
-
+          <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;"><u>Month</td><td style="padding:2.5px; margin:0px;"><u>Solar production(kWh)</td></u></tr>
+            <!--<tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;" id="monthtablea0"> </td>&nbsp;&nbsp;<td style="padding:2.5px; margin:0px;text-align:center;" id="monthtablec0"></td></tr>-->
+            <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;" id="monthtablea1"> </td>&nbsp;&nbsp;<td style="padding:2.5px; margin:0px;text-align:center;" id="monthtablec1"></td></tr>
+		    <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;" id="monthtablea2"> </td>&nbsp;&nbsp;<td style="padding:2.5px; margin:0px;text-align:center;" id="monthtablec2"></td></tr>
+			<tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;" id="monthtablea3"> </td>&nbsp;&nbsp;<td style="padding:2.5px; margin:0px;text-align:center;" id="monthtablec3"></td></tr>
+	        <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;" id="monthtablea4"> </td>&nbsp;&nbsp;<td style="padding:2.5px; margin:0px;text-align:center;" id="monthtablec4"></td></tr>
+            <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;" id="monthtablea5"> </td>&nbsp;&nbsp;<td style="padding:2.5px; margin:0px;text-align:center;" id="monthtablec5"></td></tr>
+            <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;" id="monthtablea6"> </td>&nbsp;&nbsp;<td style="padding:2.5px; margin:0px;text-align:center;" id="monthtablec6"></td></tr>
+		    <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;" id="monthtablea7"> </td>&nbsp;&nbsp;<td style="padding:2.5px; margin:0px;text-align:center;" id="monthtablec7"></td></tr>
+			<tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;" id="monthtablea8"> </td>&nbsp;&nbsp;<td style="padding:2.5px; margin:0px;text-align:center;" id="monthtablec8"></td></tr>
+	        <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;" id="monthtablea9"> </td>&nbsp;&nbsp;<td style="padding:2.5px; margin:0px;text-align:center;" id="monthtablec9"></td></tr>
+			<tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;" id="monthtablea10"> </td>&nbsp;&nbsp;<td style="padding:2.5px; margin:0px;text-align:center;" id="monthtablec10"></td></tr>
+			<tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;" id="monthtablea11"> </td>&nbsp;&nbsp;<td style="padding:2.5px; margin:0px;text-align:center;" id="monthtablec11"></td></tr>
+	
          </table>
          
           
@@ -1239,17 +1752,10 @@ chart.data = data;
 
                       <ul class="stats-overview">
                         
-                        <li style="width:33%">
-                          <span class="name"> Peak Power (kW)</span>
-                          <span class="value text-success"><b> 1000 </b></span>
-                        </li>
-                        <li style="width:33%">
-                          <span class="name">Grid Import Energy (kWh)</span>
-                          <span class="value text-danger"><b> 390 </b></span>
-                        </li>
-             <li style="width:33%">
-                          <span class="name">Solar Production (kWh)</span>
-                          <span class="value text-success"> <b> 3890 </b> </span>
+                        
+             <li style="width:99%">
+                          <span class="name">Monthly Solar Production (kWh)</span>
+                          <span class="value text-success"> <b> <p id="monthSolarProduction"></p> </b> </span>
                         </li>
                       </ul>
             
@@ -1262,20 +1768,24 @@ chart.data = data;
 <br>
 				<h3 align="left">Yearly Generation</h3>
 					
-            <p align="center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Select Date: <input type="text" id="datepickerfromyear" placeholder="Choose a Date"></p>
-            
+            <p align="center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Select Year: <input type="text" id="datepickerfromyear" placeholder="Choose a Date" readonly></p>
+            <br>
+           <br>
+            <div class="row">
+			<h6 class="ex3">Export</h6>
+			<input type="button" name="Export" OnClick="export2('yeartable','yeardata')" style="text-align:right" class="ex4"value="..."></input>
+          </div>
 					<div class="row">
-		 <div id="chartdiv2" style="height:300px;width:70%;"></div>			
-          <div class="table" id="yeartable" >
+		 <div id="chartdiv2" style="height:300px;width:80%;"></div>			
+          <div class="table" id="yeartable" style="width:20%;">
           <table>
           <tr>
-          <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;"><u>Year-Wise</td>&nbsp;&nbsp;<td style="padding:2.5px; margin:0px;"><u>Peak (kW)</td><td style="padding:2.5px; margin:0px;"><u>Solar prd.(kWh)</td><td style="padding:2.5px; margin:0px;"><u>Grid import(kWh)</td></u></tr>
-          <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;">2014 </td>&nbsp;&nbsp;<td style="padding:2.5px; margin:0px;">200</td><td style="padding:2.5px; margin:0px;">5000</td><td style="padding:2.5px; margin:0px;">130</td></tr>
-          <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;">2015 </td>&nbsp;&nbsp;<td style="padding:2.5px; margin:0px;">300</td><td style="padding:2.5px; margin:0px;">6009</td><td style="padding:2.5px; margin:0px;">230</td></tr>
-          <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;">2016 </td>&nbsp;&nbsp;<td style="padding:2.5px; margin:0px;">400</td><td style="padding:2.5px; margin:0px;">5408</td><td style="padding:2.5px; margin:0px;">120</td></tr>
-          <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;">2017 </td>&nbsp;&nbsp;<td style="padding:2.5px; margin:0px;">200</td><td style="padding:2.5px; margin:0px;">5040</td><td style="padding:2.5px; margin:0px;">130</td></tr>
-          <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;">2018 </td>&nbsp;&nbsp;<td style="padding:2.5px; margin:0px;">300</td><td style="padding:2.5px; margin:0px;">6040</td><td style="padding:2.5px; margin:0px;">230</td></tr>
-          <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;">2019 </td>&nbsp;&nbsp;<td style="padding:2.5px; margin:0px;">400</td><td style="padding:2.5px; margin:0px;">5040</td><td style="padding:2.5px; margin:0px;">120</td></tr>
+          <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;"><u>Year</td>&nbsp;&nbsp;<td style="padding:2.5px; margin:0px;"><u>Solar production(kWh)</td></u></tr>
+            <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;text-align:center;" id="yeartablea0"> </td>&nbsp;&nbsp;<td style="padding:2.5px; margin:0px;text-align:center;" id="yeartablec0"></td></tr>
+            <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;text-align:center;" id="yeartablea1"> </td>&nbsp;&nbsp;<td style="padding:2.5px; margin:0px;text-align:center;" id="yeartablec1"></td></tr>
+		    <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;text-align:center;" id="yeartablea2"> </td>&nbsp;&nbsp;<td style="padding:2.5px; margin:0px;text-align:center;" id="yeartablec2"></td></tr>
+			<tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;text-align:center;" id="yeartablea3"> </td>&nbsp;&nbsp;<td style="padding:2.5px; margin:0px;text-align:center;" id="yeartablec3"></td></tr>
+	        <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;text-align:center;" id="yeartablea4"> </td>&nbsp;&nbsp;<td style="padding:2.5px; margin:0px;text-align:center;" id="yeartablec4"></td></tr>
           
           </tr>
          </table>
@@ -1288,44 +1798,32 @@ chart.data = data;
 
                       <ul class="stats-overview">
                         
-                        <li style="width:33%">
-                          <span class="name"> Peak Power (kW)</span>
-                          <span class="value text-success"><b> 1000 </b></span>
-                        </li>
-                        <li style="width:33%">
-                          <span class="name">Grid Import Energy (kWh)</span>
-                          <span class="value text-danger"><b> 390 </b></span>
-                        </li>
-             <li style="width:33%">
-                          <span class="name">Solar Production (kWh)</span>
-                          <span class="value text-success"> <b> 3890 </b> </span>
+                        
+                        
+             <li style="width:99%">
+                          <span class="name">Lifetime Solar Production (kWh)</span>
+                          <span class="value text-success"> <b> <p id="lifetimeenergy"></p> </b> </span>
                         </li>
                       </ul>
             
             </div>
                     <!-- start project-detail sidebar -->
                    <!-- <div class="col-md-3 col-sm-3  ">
-
                       <section class="panel">
-
                         <div class="x_title">
                           <h2>Meter Parameters</h2>
                           <div class="clearfix"></div>
                         </div>
                         <div class="panel-body">
                           <h3 class="green"><i class="fa fa-paint-brush"></i> SDSI</h3>
-
                           
                           <br />
-
                           <div class="project_detail">
-
                             <p class="title">Client Company</p>
                             <p>Deveint Inc</p>
                             <p class="title">Project Leader</p>
                             <p>Tony Chicken</p>
                           </div>
-
                           <br />
                           <h5>Project files</h5>
                           <ul class="list-unstyled project_files">
@@ -1341,15 +1839,12 @@ chart.data = data;
                             </li>
                           </ul>
                           <br />
-
                           <div class="text-center mtop20">
                             <a href="#" class="btn btn-sm btn-primary">Add files</a>
                             <a href="#" class="btn btn-sm btn-warning">Report contact</a>
                           </div>
                         </div>
-
                       </section>
-
                     </div>-->
                     <!-- end project-detail sidebar -->
 
@@ -1372,7 +1867,7 @@ chart.data = data;
       </div>
     </div>
 </div>
-    <!-- jQuery -->
+   <!-- jQuery -->
     <script src="../vendors/jquery/dist/jquery.min.js"></script>
     <!-- Bootstrap -->
    <script src="../vendors/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
@@ -1413,4 +1908,5 @@ chart.data = data;
 <script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
   </body>
   
+
 </html>
