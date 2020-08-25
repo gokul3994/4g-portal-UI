@@ -64,17 +64,28 @@ $meter_id = $_GET['meter'];
   <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
   <link rel="stylesheet" href="/resources/demos/style.css">
 
+ 
    
    <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
 
 <!-- Isolated Version of Bootstrap, not needed if your site already uses Bootstrap -->
 <link rel="stylesheet" href="https://formden.com/static/cdn/bootstrap-iso.css" />
 
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="/resources/demos/style.css">
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
 <!-- Bootstrap Date-Picker Plugin -->
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/js/bootstrap-datepicker.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/css/bootstrap-datepicker3.css"/>
     
+	<!-- Remember to include jQuery :) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0/jquery.min.js"></script>
+
+<!-- jQuery Modal -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.css" />
   <style>
 #chartdiv1,#chartdiv2,#chartdiv3,#chartdiv2a {
   width: 75%;
@@ -138,14 +149,30 @@ $meter_id = $_GET['meter'];
 }
 .ex3{
   margin-left:75.5%;
+  margin-top: 10px;
+margin-bottom:-30px;
+ 
+ clear: both;
 }
 .ex4{
   margin-left:97%;
-  margin-bottom:0%
+ margin-top: 10px;
+ float: left;
 }
 #comm:hover{
 	visibility: visible;
   opacity: 1;
+}
+#gauge1,#gauge2,#gauge3{
+	 font-size:50px;
+	 margin:40px 40px 40px 35px;
+	 color:#03ab49;
+	 font-weight: 700;
+	  font-family: "Impact, Charcoal, sans-serif;
+}
+.modal a.close-modal{
+	top:0px;
+	right:0px;
 }
 
 </style>
@@ -281,15 +308,16 @@ console.log(data);
 var categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
 categoryAxis.dataFields.category = "year";
 categoryAxis.renderer.minGridDistance = 30;
-categoryAxis.title.text = " Months in a year";
+categoryAxis.title.text = " Months";
 categoryAxis.title.fontWeight = "bold";
-
+categoryAxis.title.fontSize = 20;
 /* Create value axis */
 //var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
 var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
 valueAxis.dataFields.value = "energy";
-valueAxis.title.text = " kWh ";
+valueAxis.title.text = " MWh ";
 valueAxis.title.fontWeight = "bold";
+valueAxis.title.fontSize = 25;
 
 
 
@@ -310,7 +338,7 @@ columnSeries.columns.template.propertyFields.strokeDasharray = "columnDash";
 columnSeries.tooltip.label.textAlign = "middle";
 */
 var columnSeries = chart.series.push(new am4charts.ColumnSeries());
-columnSeries.name = "Solar Production";
+columnSeries.name = "Solar Production (MWh)";
 columnSeries.dataFields.valueY = "import";
 columnSeries.fill = am4core.color("#60f763");
 columnSeries.dataFields.categoryX = "year";
@@ -339,7 +367,7 @@ circle.strokeWidth = 2;
 */
 // Add legend
 chart.legend = new am4charts.Legend();
-
+chart.legend.position = "right";
 // Add cursor
 chart.cursor = new am4charts.XYCursor();
 
@@ -523,15 +551,16 @@ console.log(data);
 var categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
 categoryAxis.dataFields.category = "month";
 categoryAxis.renderer.minGridDistance = 30;
-categoryAxis.title.text="Days in a month";
+categoryAxis.title.text="Days";
 categoryAxis.title.fontWeight = "bold";
+categoryAxis.title.fontSize = 20;
 /* Create value axis */
 //var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
 var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
 valueAxis.dataFields.value = "energy";
 valueAxis.title.text = " kWh ";
 valueAxis.title.fontWeight = "bold";
-
+valueAxis.title.fontSize = 25;
 
 
 /* Create series */
@@ -550,7 +579,7 @@ columnSeries.columns.template.propertyFields.strokeDasharray = "columnDash";
 columnSeries.tooltip.label.textAlign = "middle";
 */
 var columnSeries = chart.series.push(new am4charts.ColumnSeries());
-columnSeries.name = "Solar Production";
+columnSeries.name = "Solar Production (kWh)";
 columnSeries.label = "year";
 columnSeries.dataFields.valueY = "import";
 columnSeries.fill = am4core.color("#60f763");
@@ -580,7 +609,7 @@ circle.strokeWidth = 2;
 */
 // Add legend
 chart.legend = new am4charts.Legend();
-
+chart.legend.position = "right";
 // Add cursor
 chart.cursor = new am4charts.XYCursor();
 
@@ -768,16 +797,16 @@ console.log(data);
 var categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
 categoryAxis.dataFields.category = "hour";
 categoryAxis.renderer.minGridDistance = 30;
-categoryAxis.title.text = " Time is hours ";
+categoryAxis.title.text = "Hours";
 categoryAxis.title.fontWeight = "bold";
-
+categoryAxis.title.fontSize = 20;
 /* Create value axis */
 //var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
 var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
 valueAxis.dataFields.value = "energy";
 valueAxis.title.text = " kWh ";
 valueAxis.title.fontWeight = "bold";
-
+valueAxis.title.fontSize = 25;
 
 
 
@@ -796,7 +825,7 @@ columnSeries.columns.template.propertyFields.strokeDasharray = "columnDash";
 columnSeries.tooltip.label.textAlign = "middle";
 */
 var columnSeries = chart.series.push(new am4charts.ColumnSeries());
-columnSeries.name = "Solar Production";
+columnSeries.name = "Solar Production (kWh)";
 columnSeries.dataFields.valueY = "import";
 columnSeries.fill = am4core.color("#60f763");
 
@@ -833,7 +862,7 @@ circle.strokeWidth = 2;
 */
 // Add legend
 chart.legend = new am4charts.Legend();
-
+chart.legend.position = "right";
 // Add cursor
 chart.cursor = new am4charts.XYCursor();
 
@@ -884,21 +913,20 @@ chart.data = data;
 		 var seriestop = JSON.parse(data);
 		lastcomm=seriestop[3].values[0][1];
 		document.getElementById("lastcomm").innerHTML=lastcomm;
-		temp=(seriestop[1].values[0][1]*9/5)+32;
-		tempr=parseFloat(temp).toFixed(2);
-		document.getElementById("temp").innerHTML=tempr;
+		
 		comm=seriestop[0].values[0][1];
 		if(comm==1){
 			var a=document.createElement("button");
 			a.setAttribute('class','btn btn-success');
 			document.body.appendChild(a);
 		document.getElementById("comm").appendChild(a);
+		document.getElementById("comm").title="online";
 		}else{
 			var b=document.createElement("button");
 			b.setAttribute('class','btn btn-danger');
 			document.body.appendChild(b);
 		document.getElementById("comm").appendChild(b);
-			
+		document.getElementById("comm").title="offline";	
 		}
 		
 		power=seriestop[2].values[0][1];
@@ -907,16 +935,19 @@ chart.data = data;
 			c.setAttribute('class','btn btn-success');
 			document.body.appendChild(c);
 		document.getElementById("status").appendChild(c);
+		document.getElementById("status").title="online";
 		}else if(power <=0 || comm==1 ){
 			var d=document.createElement("button");
 			d.setAttribute('class','btn btn-warning');
 			document.body.appendChild(d);
 		document.getElementById("status").appendChild(d);
+		document.getElementById("status").title="warning";
 			}else{
 				var e=document.createElement("button");
 			e.setAttribute('class','btn btn-danger');
 			document.body.appendChild(e);
 		document.getElementById("status").appendChild(e);
+		document.getElementById("status").title="offline";
 			}
 			
 	}
@@ -935,8 +966,8 @@ chart.data = data;
 		
 		 var series = JSON.parse(mydata);
 		daypro=series[1].values[0][1];
-		document.getElementById("daySolarProduction").innerHTML=daypro;
-		document.getElementById("dayGridImportEnergy").innerHTML=0;
+		//document.getElementById("daySolarProduction").innerHTML=daypro;
+		document.getElementById("gauge1").innerHTML=daypro;
 	}
 
 
@@ -956,7 +987,8 @@ $.ajax( {
 		 var seriesmonth = JSON.parse(mydatareal);
 		
 		monthpro=seriesmonth[1].values[0][1];
-		document.getElementById("monthSolarProduction").innerHTML=monthpro;
+		//document.getElementById("monthSolarProduction").innerHTML=monthpro;
+		document.getElementById("gauge2").innerHTML=monthpro;
 		
 	}
 
@@ -977,7 +1009,8 @@ $.ajax( {
 		
 		
 		lifepro=serieslifetime[1].values[0][1];
-		document.getElementById("lifetimeenergy").innerHTML=lifepro;
+		//document.getElementById("lifetimeenergy").innerHTML=lifepro;
+		document.getElementById("gauge3").innerHTML=lifepro;
 		
 	}
 </script>	
@@ -1212,7 +1245,23 @@ function export2(tableID, filename = ''){
     }
 }
 
+
+
+</script>
+<script>
+$( function() {
+    $( #comm ).tooltip();
+  } );
+  $( function() {
+    $( #status ).tooltip();
+  } );
+
+ $("#custom-close").modal({
+  closeClass: 'icon-remove',
+  closeText: '!'
+});
 </script>	
+  
 
   <script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
 <script src="//code.jquery.com/jquery-1.9.1.js"></script>
@@ -1316,23 +1365,51 @@ function export2(tableID, filename = ''){
                           <br />
                           <h5>Project files</h5>
                           <ul class="list-unstyled project_files">
-                            <li><a href=""><i class="fa fa-file-word-o"></i> Documents.docx</a>
+                           <!-- <li><a href=""><i class="fa fa-file-word-o"></i> Documents.docx</a>
                             </li>
                             <li><a href=""><i class="fa fa-file-pdf-o"></i> Drawings.pdf</a>
                             </li>
-                           <!--<li><a href=""><i class="fa fa-mail-forward"></i> Email-from-flatbal.mln</a>
+                           <li><a href=""><i class="fa fa-mail-forward"></i> Email-from-flatbal.mln</a>
                             </li>
                             <li><a href=""><i class="fa fa-picture-o"></i> Logo.png</a>
                             </li>
                             <li><a href=""><i class="fa fa-file-word-o"></i> Contract-10_12_2014.docx</a>
                             </li>-->
+							<?php $path    = 'uploads/10439395/';
+                           $files =  array_values(array_diff(scandir($path), array('.', '..'))); 
+						   ?>
+						   <?php foreach($files as $key=>$value){  
+						   $format= explode(".",$value);
+						   
+						   if ($format[1]=="docx" || $format[1]=="xlsx" || $format[1]=="xls" ){
+						   ?>
+                        							  
+						   <li><a href="uploads/<?php echo $meter_id ?>/<?php echo $value ?>"><i class="fa fa-file-word-o"></i> <?php echo $value ?></a>
+                            </li>
+						   <?php } elseif($format[1]=="pdf"){
+						   ?>
+                        							  
+						   <li><a href="uploads/<?php echo $meter_id ?>/<?php echo $value ?>"><i class="fa fa-file-pdf-o"></i> <?php echo $value ?></a>
+                            </li>
+						   <?php } else{?>
+						  
+                        							  
+						   <li><a href="uploads/<?php echo $meter_id ?>/<?php echo $value ?>" target="_blank"><i class="fa fa-file-picture-o"></i> <?php echo $value ?></a>
+                            </li>
+						   <?php } ?>
+						   
+						   <?php } ?>
+							
+							
                           </ul>
                           <br />
 
                           <div class="text-center mtop20">
-                            <a href="#" class="btn btn-sm btn-primary">Add files</a>
-                            <a href="#" class="btn btn-sm btn-warning">Report contact</a>
+                            <a href="file.php?meter=<?php echo $meter_id ?>" class="btn btn-sm btn-primary" target="_blank" rel="modal:open">Add files</a>
+                           
+           
                           </div>
+					
                         </div>
  </div>
               <!--<div class="menu_section">
@@ -1525,30 +1602,30 @@ function export2(tableID, filename = ''){
 
                       <ul class="stats-overview">
 					  
-                       <li style="width:24%;">
+                       <li style="width:33%;">
                           <span class="name"> Plant Production Status </span>
                           <span class="value text-success" id="status">  </span>
                         </li>
 						
-                        <li style="width:24%;">
+                        <li style="width:33%;">
                           <span class="name"> Latest Interval Data Read </span>
                           <span class="value text-none" id="lastcomm"><b></b></span>
                         </li>
 						
 						
-						<li style="width:24%;">
-                          <span class="name"> Temperature (F) </span>
-                          <span class="value text-none" id="temp"><b></b></span>
-                        </li>
 						
 						
-                        <li class="hidden-phone" style="width:24%;">
-                          <span class="name"> Communication status </span>
-                          <span class="value text-success" id="comm">  </span>
+						
+                        <li class="hidden-phone" style="width:33%;">
+                          <span class="name" > Communication status </span>
+                          <span class="value text-success" id="comm" >  </span>
                         </li>
 						
                       </ul>
                       <br />
+					  
+					  
+					  	  
 					  <div class="row">
 					   <div class="col-md-3 col-sm-3  ">
 
@@ -1558,21 +1635,14 @@ function export2(tableID, filename = ''){
 
 <table border=1 width="100%" style="background-color: #40475A; border: 2px solid;   border-radius: 5px;color: #cccccc;">
   <tr class="info">
-       <td  width="50%" ><i> <b>Project ID</b></i></td>
+       <td  width="50%" ><i> <b>SDSI Project ID</b></i></td>
        <td><i><b> IL-01-001 </b></i></td>
   </tr>
   <tr>
        <td  width="50%" ><i> <b>Meter</b></i></td>
        <td><i><b> 10439395 </b></i></td>
   </tr>
-  <tr>
-    <td><i><b>SIM</b></i></td>
-    <td><i><b> 8901264089519 </b></i></td>
-  </tr>
-  <tr>
-    <td><i><b>IMEI</b></i></td>
-    <td><i><b> 9808080124089519 </b></i></td>
-  </tr>
+ 
    <tr>
     <td><i><b>Address</b></i></td>
     <td><i><b> 930 Church Street. Evanston. IL-60201 </b></i></td>
@@ -1587,6 +1657,10 @@ function export2(tableID, filename = ''){
   </tr>
   <tr>
        <td> <i><b>Reporting Agency</b></i></td>
+       <td><i><b>  - </b></i></td>
+  </tr>
+  <tr>
+       <td> <i><b>Reported Date</b></i></td>
        <td><i><b>  - </b></i></td>
   </tr>
 
@@ -1609,7 +1683,7 @@ function export2(tableID, filename = ''){
 <div class="clearfix"></div>
 </div>
 <div class="x_content" >
-<div id="echart_gauge" style="height:187px;" ></div>
+<div id="gauge1" ></div>
 </div>
 </div>
 </div>
@@ -1621,7 +1695,7 @@ function export2(tableID, filename = ''){
 <div class="clearfix"></div>
 </div>
 <div class="x_content">
-<div id="echart_gauge1" style="height:187px;" ></div>
+<div id="gauge2" ></div>
 </div>
 </div>
 </div>
@@ -1629,11 +1703,11 @@ function export2(tableID, filename = ''){
  <div class="col-md-3 col-sm-3  ">
 <div class="x_panel">
 <div class="x_title">
-<h2>Lifetime Generation(kWh)</h2>
+<h2>Lifetime Generation(MWh)</h2>
 <div class="clearfix"></div>
 </div>
 <div class="x_content">
-<div id="echart_gauge2" style="height:187px;" ></div>
+<div id="gauge3" ></div>
 </div>
 </div>
 </div>
@@ -1645,11 +1719,13 @@ function export2(tableID, filename = ''){
 
 
 </div>
+
+
 <div id="gauge"></div>
 
 
 
-             <h3 align="left">Hourly Generation</h3>
+             <h3 align="left">Daily Generation</h3>
                       <!--<div id="mainb" style="height:350px;"></div>-->
             
           <p align="center">Select Date: <input type="text" id="daydatepicker" placeholder="Choose a Date" readonly></p>
@@ -1661,22 +1737,19 @@ function export2(tableID, filename = ''){
             <h6 align="right">Export</h6>
             <div id="chartdiv1" style="width:100%;"><img src="images/loading.gif" id="dayloading"></div>
             
-            <div class="col-md-12 col-sm-12" >
+            <!--<div class="col-md-12 col-sm-12" >
 
                       <ul class="stats-overview">
                        
                         
-                        <li style="width:49%">
-                          <span class="name">Grid Consumption (kWh)</span>
-                          <span class="value text-danger"><p id="dayGridImportEnergy"></p></span>
-                        </li>
-             <li style="width:49%">
+                        
+             <li style="width:99%">
                           <span class="name">Solar Production (kWh)</span>
                           <span class="value text-success"><p id="daySolarProduction"></p></span>
                         </li>
                       </ul>
             
-            </div>
+            </div>-->
         
             <br>
                     <br>
@@ -1748,7 +1821,7 @@ function export2(tableID, filename = ''){
                     </div>
 					</div>
 					<br>
-					<div class="col-md-12 col-sm-12" >
+					<!--<div class="col-md-12 col-sm-12" >
 
                       <ul class="stats-overview">
                         
@@ -1759,7 +1832,7 @@ function export2(tableID, filename = ''){
                         </li>
                       </ul>
             
-            </div>
+            </div>-->
 			<br>
 			<br>
 				
@@ -1774,13 +1847,13 @@ function export2(tableID, filename = ''){
             <div class="row">
 			<h6 class="ex3">Export</h6>
 			<input type="button" name="Export" OnClick="export2('yeartable','yeardata')" style="text-align:right" class="ex4"value="..."></input>
-          </div>
+         </div>
 					<div class="row">
 		 <div id="chartdiv2" style="height:300px;width:80%;"></div>			
           <div class="table" id="yeartable" style="width:20%;">
           <table>
           <tr>
-          <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;"><u>Year</td>&nbsp;&nbsp;<td style="padding:2.5px; margin:0px;"><u>Solar production(kWh)</td></u></tr>
+          <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;"><u>Year</td>&nbsp;&nbsp;<td style="padding:2.5px; margin:0px;"><u>Solar production(MWh)</td></u></tr>
             <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;text-align:center;" id="yeartablea0"> </td>&nbsp;&nbsp;<td style="padding:2.5px; margin:0px;text-align:center;" id="yeartablec0"></td></tr>
             <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;text-align:center;" id="yeartablea1"> </td>&nbsp;&nbsp;<td style="padding:2.5px; margin:0px;text-align:center;" id="yeartablec1"></td></tr>
 		    <tr style="padding:2.5px; margin:0px;"><td style="padding:2.5px; margin:0px;text-align:center;" id="yeartablea2"> </td>&nbsp;&nbsp;<td style="padding:2.5px; margin:0px;text-align:center;" id="yeartablec2"></td></tr>
@@ -1794,19 +1867,19 @@ function export2(tableID, filename = ''){
 
                     </div>
 					</div>
- <div class="col-md-12 col-sm-12" >
+ <!--<div class="col-md-12 col-sm-12" >
 
                       <ul class="stats-overview">
                         
                         
                         
              <li style="width:99%">
-                          <span class="name">Lifetime Solar Production (kWh)</span>
+                          <span class="name">Lifetime Solar Production (MWh)</span>
                           <span class="value text-success"> <b> <p id="lifetimeenergy"></p> </b> </span>
                         </li>
                       </ul>
             
-            </div>
+            </div>-->
                     <!-- start project-detail sidebar -->
                    <!-- <div class="col-md-3 col-sm-3  ">
                       <section class="panel">

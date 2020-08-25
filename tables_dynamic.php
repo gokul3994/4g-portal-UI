@@ -1,3 +1,65 @@
+
+
+
+
+
+<?php
+
+
+
+
+    // Include config file
+    require_once "config.php";
+    session_start();
+
+   if($_SESSION["session_liveness"] != 1){
+    header("Location: login.php");
+   }
+
+    $orgSlNo = $_SESSION['org_sl_no'];
+    $meters = getMetersOfInstaller($pdo,$orgSlNo);
+
+
+    function getMetersOfInstaller($pdo,$orgSlNo){
+
+        // Prepare a select statement
+        $meterOfInstallerSql = "SELECT * FROM meter where `org_sl_no`='".$orgSlNo."'";
+
+        if($stmt = $pdo->prepare($meterOfInstallerSql)){
+
+            
+            // Attempt to execute the prepared statement
+            if($stmt->execute()){
+                if($stmt->rowCount() > 0){
+
+
+                    /* Fetch result row as an associative array. Since the result set contains only one row, we don't need to use while loop */
+                    while($row = $stmt->fetchAll(PDO::FETCH_ASSOC)){
+                    $meters[] = $row;
+                    }
+                    return $meters;
+                    
+                    
+                } else{
+                  
+                }
+                
+            } else{
+                
+            }
+        }
+
+    }
+    
+
+?>
+
+
+    
+
+
+
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -98,7 +160,7 @@
                 <ul class="nav side-menu">
                   <li><a href="tables_dynamic.php" ><i class="fa fa-home"></i> User Management <span class="fa fa-chevron-down"></span></a>
                     <ul class="nav child_menu">
-                      <li><a href="tables_dynamic.php">Home Owner</a></li>
+                      <li><a href="tables_dynamic.php">Plant Owner</a></li>
                       <li><a href="tables_dynamic.php">Installer</a></li>
                       <li><a href="tables_dynamic.php">Project Adminstrator</a></li>
                     </ul>
@@ -208,7 +270,7 @@
               <a data-toggle="tooltip" data-placement="top" title="Lock">
                 <span class="glyphicon glyphicon-eye-close" aria-hidden="true"></span>
               </a>
-              <a data-toggle="tooltip" data-placement="top" title="Logout" href="login.html">
+              <a data-toggle="tooltip" data-placement="top" title="Logout" href="session_out.php">
                 <span class="glyphicon glyphicon-off" aria-hidden="true"></span>
               </a>
             </div>
@@ -235,7 +297,7 @@
                           <span>Settings</span>
                         </a>
                     <a class="dropdown-item"  href="javascript:;">Help</a>
-                      <a class="dropdown-item"  href="login.html"><i class="fa fa-sign-out pull-right"></i> Log Out</a>
+                      <a class="dropdown-item"  href="session_out.php"><i class="fa fa-sign-out pull-right"></i> Log Out</a>
                     </div>
                   </li>
   
@@ -392,100 +454,78 @@
 							<p align="right">
                     <input type="button" name="Export" OnClick="export1('datatable','data')" style="text-align:right" value="Export"/>
                     </p>
-					<table id="datatable" class="table table-striped table-bordered" style="width:100%">
+
+
+
+
+
+
+
+                    <table id="datatable" class="table table-striped table-bordered" style="width:100%">
                       <thead>
                         <tr>
-                          <th>Meter No.</th>
-						  <th>Installer Name</th>
-                          <th>Project ID</th>
-			              <th>Plant Name</th>
-				           <th>Plant Status</th>
-						  <th>Capacity (kW)</th>
-						  <th>Current (kW)</th>
-                          <th>Energy (kWh)</th>
-						  <th>Temp (°C)</th>
-						  <th>Comm Status</th>
-						  <th>Last Comm. Time</th>
-                          <th>Spec. Yield (kWh/kWp)</th>
-						  
-                          <th>Today Generation (kWh)</th>
-                          <th>Monthly Generation (kWh)</th>
-                          <th>Yearly Generation (MWh)</th>
-                          <th>Lifetime Generation (MWh)</th>
-						  
-                          <th>State</th>
-						  <th>City</th>
-						  <th>Zipcode</th>
-						  <th>Remote Disconnect Status</th>
-						  <th>Reporting Agency</th>
-                          <th>Reporting Agency ID</th>
-						  <th>Reporting Status</th>
-                          
+                            <th>Meter No.</th>
+                            <th>Installer Name</th>
+                            <th>Project ID</th>
+                            <th>Plant Name</th>
+                            <th>Plant Status</th>
+                            <th>Capacity (kW)</th>
+                            <th>Current (kW)</th>
+                            <th>Energy (kWh)</th>
+                            <th>Temp (°C)</th>
+                            <th>Comm Status</th>
+                            <th>Last Comm. Time</th>
+                            <th>Spec. Yield (kWh/kWp)</th>
+                            <th>Today Generation (kWh)</th>
+                            <th>State</th>
+                            <th>City</th>
+                            <th>Zipcode</th>
+                            <th>Remote Disconnect Status</th>
+                            <th>Reporting Agency</th>
+                            <th>Reporting Agency ID</th>
+                            <th>Reporting Status</th>
                         </tr>
                       </thead>
 
 
                       <tbody>
+
+
+<?php foreach($meters[0] as $key=>$value){ ?>                        
                         <tr>
-                          <td><a href="project_detail_new.php">7823456</a></td>
-                          <td>Illionis Solar</td>
-                          <td>IL-02-20-001</td>
-						  
-						  
-						  <td>Spring field University </td>
-                          <td><button class="btn btn-success"></button></td>
-                         
-                          <td>30</td>
-                          <td>15</td>
-						  <td>25</td>
-						  <td>10</td>
-						  <td><button class="btn btn-success"></button></td>
-                          <td>06/26/2020 02.30PM</td>
-                          <td>0.7</td>
-                          <td>25</td>
-                          <td>5400</td>
-                          <td>64.8</td>
-						  <td>100.8</td>
-						  <td>IL</td>
-                          <td>Greenfield</td>
-						  <td>IL-29002</td>
-                          <td><button class="btn btn-success"></button></td>
-                          <td>GATS</td>
-						  <td>38962</td>
-						  <td>Enabled</td>
-                        </tr>
-                        <tr>
-                          <td><a href="project_detail_2.php">7823488</a></td>
-                          <td>DPN Solar</td>
-                          <td>NY-02-20-001</td>
-						
-						  
-						  <td>Hudson University </td>
-                          <td><button class="btn btn-danger"></button></td>
-                          
-                          <td>15</td>
-                          <td>0</td>
-						  <td>0</td>
-						  <td>0</td>
-						  <td><button class="btn btn-danger"></button></td>
-                          <td>06/22/2020 05.30PM</td>
-                          <td>0</td>
-                          <td>0</td>
-                          <td>120</td>
+                          <td><a href="project_detail_2.php?meter=<?php echo $value['meter_id']; ?>"><?php echo $value['meter_id']; ?></a></td>
                           <td>4.8</td>
-						  <td>10.8</td>
-						  <td>NY</td>
-                          <td>Hudson River</td>
-						  <td>NY-29002</td>
-                          <td><button class="btn btn-warning"></button></td>
-                          <td>PTS</td>
-						  <td>48962</td>
-						  <td>Disabled</td>
+                          <td>4.8</td>
+                          <td>4.8</td>
+                          <td>4.8</td>
+                          <td>4.8</td>
+                          <td>4.8</td>
+                          <td><?php echo $value['today_energy']; ?></td>
+                          <td>4.8</td>
+                          <td>4.8</td>
+                          <td><?php echo $value['last_read']; ?></td>
+                          <td>4.8</td>
+                          <td>4.8</td>
+                          <td>4.8</td>
+                          <td>4.8</td>
+                          <td>4.8</td>
+                          <td>4.8</td>
+                          <td>4.8</td>
+                          <td>4.8</td>
+                          <td>4.8</td>                                                    
+
                         </tr>
 
 
+<?php } ?>
                       </tbody>
                     </table>
+
+
+
+
+
+
                   </div>
                   </div>
               </div>
@@ -544,7 +584,24 @@
 
 
     
+<script>
+ /*$(function() {
 
+var orgSlNo = '<?php session_start();echo $_SESSION['org_sl_no']; ?>';
+alert(orgSlNo);
+
+$.ajax({
+          url:'http://pv-india.eu/usaportal/production/installer.php?api=metersOfInstaller&orgSlNo='+orgSlNo,
+          
+                  success:function(realdata) {
+                  alert(realdata);         
+
+                  }
+               });
+
+ })*/
+
+</script>
     
 
   </body>
