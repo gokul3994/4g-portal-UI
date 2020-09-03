@@ -90,7 +90,13 @@
 
     <!-- Custom Theme Style -->
     <link href="../build/css/custom.min.css" rel="stylesheet">
-	
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="/resources/demos/style.css">
+
+ 
+   
+  
+
 	<script>
 	function export1(tableID, filename = ''){
     var downloadLink;
@@ -126,6 +132,32 @@
 
 	
 	</script>
+	<style>
+	.danger{
+		background-color:red;
+		width:50%;
+		height:15px;
+		color:red;
+	}
+	.success{
+		background-color:green;
+		width:50%;
+		height:15px;
+		color:green;
+	}
+	.warning{
+		background-color:orange;
+		width:50%;
+		height:15px;
+		color:orange;
+	}
+	#comm:hover{
+	visibility: visible;
+  opacity: 1;
+}
+
+	</style>
+	
   </head>
 
   <body class="nav-md">
@@ -134,7 +166,7 @@
         <div class="col-md-3 left_col">
           <div class="left_col scroll-view">
             <div class="navbar nav_title" style="border: 0;">
-              <a href="tables_dynamic.php" class="site_title"><i class="fa fa-paw"></i> <span>SDSI</span></a>
+              <a href="tables_dynamic.php" class="site_title"> <span>SDSI</span></a>
             </div>
 
             <div class="clearfix"></div>
@@ -466,24 +498,25 @@
                         <tr>
                             <th>Meter No.</th>
                             <th>Installer Name</th>
-                            <th>Project ID</th>
+                            <th>SDSI Project ID</th>
+							<th>Reporting Agency</th>
+                            <th>Reporting Agency ID</th>
+                            <th>Reporting Status</th>
+							<th>Reported Date</th>
                             <th>Plant Name</th>
                             <th>Plant Status</th>
                             <th>Capacity (kW)</th>
-                            <th>Current (kW)</th>
-                            <th>Energy (kWh)</th>
-                            <th>Temp (°C)</th>
+                            <th>Today Generation (kWh)</th>
                             <th>Comm Status</th>
                             <th>Last Comm. Time</th>
                             <th>Spec. Yield (kWh/kWp)</th>
-                            <th>Today Generation (kWh)</th>
+                            <th>Monthly Generation (kWh)</th>
+							<th>Yearly Generation (MWh)</th>
                             <th>State</th>
                             <th>City</th>
                             <th>Zipcode</th>
                             <th>Remote Disconnect Status</th>
-                            <th>Reporting Agency</th>
-                            <th>Reporting Agency ID</th>
-                            <th>Reporting Status</th>
+                            
                         </tr>
                       </thead>
 
@@ -500,12 +533,19 @@
                           <td>4.8</td>
                           <td>4.8</td>
                           <td>4.8</td>
+                          <td>4.8</td>
+                          <td>4.8</td>
+                          <td>4.8</td>
                           <td><?php echo $value['today_energy']; ?></td>
-                          <td>4.8</td>
-                          <td>4.8</td>
+                          <td><?php if($value['today_energy']==1){;?>
+						  <button class="success" id="comm" title="online" ><span style="display:none;"> online </span></button>
+						  <?php } elseif($value['today_energy']==0){?>
+							  <button class="danger" id="comm" title="offline" ><span style="display:none;"> offline </span></button>
+						 <?php } else{?>
+						 <button class="warning" id="comm" title="No production" ><span style="display:none;"> No Production </span></button>
+						 <?php } ?>
+						  </td>
                           <td><?php echo $value['last_read']; ?></td>
-                          <td>4.8</td>
-                          <td>4.8</td>
                           <td>4.8</td>
                           <td>4.8</td>
                           <td>4.8</td>
